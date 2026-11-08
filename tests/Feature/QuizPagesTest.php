@@ -20,7 +20,7 @@ class QuizPagesTest extends TestCase
 
     public function test_question_bank_is_valid(): void
     {
-        $response = $this->getJson('/api/questions')->assertOk();
+        $response = $this->getJson('/question-bank')->assertOk();
         $bank = $response->json();
 
         $this->assertNotEmpty($bank);

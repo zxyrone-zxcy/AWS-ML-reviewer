@@ -1,4 +1,4 @@
-/* Quiz engine. Questions come from /api/questions (resources/data/questions.json). */
+/* Quiz engine. Questions come from /question-bank (resources/data/questions.json). */
 (function () {
   'use strict';
 

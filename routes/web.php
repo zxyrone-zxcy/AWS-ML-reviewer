@@ -9,4 +9,4 @@ Route::get('/quiz', [QuizController::class, 'quiz'])->name('quiz');
 Route::get('/about', [QuizController::class, 'about'])->name('about');
 
 // Question bank consumed by public/js/quiz.js
-Route::get('/api/questions', [QuizController::class, 'questions'])->name('questions');
+Route::get('/question-bank', [QuizController::class, 'questions'])->name('questions');
