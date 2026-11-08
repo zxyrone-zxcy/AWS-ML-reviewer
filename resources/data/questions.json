@@ -1,0 +1,2862 @@
+[
+ {
+  "id": 1,
+  "topic": "SageMaker basics",
+  "topic_slug": "sagemaker-basics",
+  "question": "Where must the training and inference code of a SageMaker job live?",
+  "correct": 1,
+  "options": [
+   {
+    "text": "In a Lambda layer attached to the training job",
+    "why": "Not how SageMaker works. Lambda layers package code for Lambda functions; SageMaker jobs run in containers."
+   },
+   {
+    "text": "Inside container images registered in Amazon ECR",
+    "why": "SageMaker runs training and inference code inside Docker images, and ECR is the registry where those images are registered. Input and output data usually sit in S3, but code goes in the image."
+   },
+   {
+    "text": "In an S3 bucket, loaded by the notebook at run time",
+    "why": "S3 typically holds the data and model artifacts. The code still has to be packaged in a container image."
+   },
+   {
+    "text": "Directly on the EC2 instance's root volume",
+    "why": "You don't manage the underlying instance by hand. SageMaker provisions it and runs your container."
+   }
+  ],
+  "takeaway": "All SageMaker models are hosted in Docker containers registered in ECR. Because containers are isolated and hold all their dependencies, you can run any script or algorithm regardless of language or runtime."
+ },
+ {
+  "id": 2,
+  "topic": "SageMaker basics",
+  "topic_slug": "sagemaker-basics",
+  "question": "Which statement about deploying models in SageMaker is TRUE?",
+  "correct": 2,
+  "options": [
+   {
+    "text": "Every trained model must be deployed to a real-time endpoint",
+    "why": "False. Your notes call this out: not all ML models are deployed to endpoints."
+   },
+   {
+    "text": "SageMaker Training, Processing and Hosting are three names for the same thing",
+    "why": "They are distinct. Processing is data work, Training builds the model, and Hosting serves inference. Telling them apart is essential for the exam."
+   },
+   {
+    "text": "Not all trained models are deployed to endpoints; SageMaker Training, Processing and Hosting cover different parts of the E2E process",
+    "why": "Correct. SageMaker covers the whole E2E process (data processing, training, deployment, hosting), but each stage is a different capability, and a model doesn't have to end up on an endpoint."
+   },
+   {
+    "text": "SageMaker only supports its built-in algorithms",
+    "why": "False. You can bring your own code in a Docker image, or use pre-built DLCs for TensorFlow, PyTorch, etc."
+   }
+  ],
+  "takeaway": "Know the difference between SageMaker Processing, Training and Hosting. Your notes say SageMaker is the 'heart' of MLA-C01, so most questions touch it."
+ },
+ {
+  "id": 3,
+  "topic": "Automatic Model Tuning",
+  "topic_slug": "automatic-model-tuning",
+  "question": "You enable Early Stopping (Auto) on an AMT job. Which condition must hold for it to work?",
+  "correct": 3,
+  "options": [
+   {
+    "text": "The training data must be stored in Amazon FSx",
+    "why": "Storage choice has nothing to do with early stopping."
+   },
+   {
+    "text": "The tuning job must use Warm Start",
+    "why": "Warm Start and Early Stopping are independent configurations."
+   },
+   {
+    "text": "The algorithm must be a built-in tree-based algorithm",
+    "why": "Not a requirement. If anything, early stopping suits NNs, which emit metrics per epoch."
+   },
+   {
+    "text": "The algorithm must emit the objective metric after each epoch",
+    "why": "Correct. Early stopping only works for algorithms that emit the objective metric after each epoch (most neural networks do). It stops training when the metric isn't improving significantly."
+   }
+  ],
+  "takeaway": "Early Stopping = Auto stops a training job if the objective metric isn't improving significantly. Benefits: reduces compute time and helps avoid overfitting."
+ },
+ {
+  "id": 4,
+  "topic": "Automatic Model Tuning",
+  "topic_slug": "automatic-model-tuning",
+  "question": "You want to continue a previous tuning job, but this time on a NEW dataset. Which Warm Start type do you choose?",
+  "correct": 0,
+  "options": [
+   {
+    "text": "TRANSFER_LEARNING",
+    "why": "Correct. TRANSFER_LEARNING lets you use a new dataset while continuing where the earlier tuning job left off."
+   },
+   {
+    "text": "IDENTICAL_DATA_AND_ALGORITHM",
+    "why": "This type requires the same dataset and the same algorithm, so it doesn't fit a new dataset."
+   },
+   {
+    "text": "EARLY_STOPPING_AUTO",
+    "why": "Not a warm start type. Early stopping is a separate AMT setting."
+   },
+   {
+    "text": "RESOURCE_LIMIT_INHERIT",
+    "why": "Doesn't exist. Resource limits are default quotas, not a warm start mode."
+   }
+  ],
+  "takeaway": "Warm Start uses one or more previous tuning jobs as the starting point so AMT 'remembers' which hyperparameter combinations to try next. It also lets you stop and restart tuning jobs."
+ },
+ {
+  "id": 5,
+  "topic": "Automatic Model Tuning",
+  "topic_slug": "automatic-model-tuning",
+  "question": "A hyperparameter's range is 0.0001 to 0.1. What does the AMT best-practice guidance recommend?",
+  "correct": 1,
+  "options": [
+   {
+    "text": "Use a linear scale so values are evenly spaced",
+    "why": "With a range spanning three orders of magnitude, a linear scale spends almost all samples near the top end."
+   },
+   {
+    "text": "Use a logarithmic scale",
+    "why": "Correct. Your notes recommend logarithmic scales when appropriate, for example when a range runs from 0.0001 to 0.1, so each order of magnitude gets explored."
+   },
+   {
+    "text": "Widen the range to 0 to 1000 to be safe",
+    "why": "The advice is the opposite: keep ranges as small as possible and don't explore crazy values if you already have guidelines."
+   },
+   {
+    "text": "Fix the value and tune other things",
+    "why": "Not a best practice here. Tuning is fine, just choose a sensible scale."
+   }
+  ],
+  "takeaway": "Other AMT best practices: don't optimize too many hyperparameters at once, focus on the important ones, narrow ranges, and don't run too many training jobs concurrently."
+ },
+ {
+  "id": 6,
+  "topic": "Automatic Model Tuning",
+  "topic_slug": "automatic-model-tuning",
+  "question": "Why does the AMT guidance warn against running too many training jobs concurrently?",
+  "correct": 2,
+  "options": [
+   {
+    "text": "It violates the default AWS Region quota for S3",
+    "why": "Concurrency isn't tied to S3 quotas. The concern is about tuning quality."
+   },
+   {
+    "text": "Concurrent jobs always produce different objective metrics",
+    "why": "Not the reason. Metrics aren't affected by concurrency itself."
+   },
+   {
+    "text": "It limits how well the tuning process can learn as it goes",
+    "why": "Correct. AMT learns from finished trials to choose the next combinations. Many parallel jobs mean less feedback is available when each new one is chosen."
+   },
+   {
+    "text": "Only one tuning job per account is allowed",
+    "why": "False. There are default limits on parallel jobs, but they're quite high."
+   }
+  ],
+  "takeaway": "AMT doesn't need to try every combination because it learns as it goes. For jobs on multiple instances, make sure the correct objective metric is reported at the end."
+ },
+ {
+  "id": 7,
+  "topic": "Automatic Model Tuning",
+  "topic_slug": "automatic-model-tuning",
+  "question": "Your AMT job hits a default resource limit (parallel jobs, hyperparameters, etc.). How do you raise it?",
+  "correct": 3,
+  "options": [
+   {
+    "text": "Edit the limit in the SageMaker Studio settings",
+    "why": "There's no self-service toggle for these quotas."
+   },
+   {
+    "text": "Switch the job to spot instances",
+    "why": "Spot pricing reduces cost but doesn't change the limits."
+   },
+   {
+    "text": "Delete and recreate the tuning job",
+    "why": "This doesn't change account quotas."
+   },
+   {
+    "text": "Submit a support request to increase the quota",
+    "why": "Correct. Limits are fairly high by default, and raising them requires a support request. AWS sets them to prevent overspending by people who don't know what they're doing."
+   }
+  ],
+  "takeaway": "Resource limits cover things like parallel tuning jobs, number of hyperparameters and training jobs per tuning job."
+ },
+ {
+  "id": 8,
+  "topic": "Containers & MLOps",
+  "topic_slug": "containers-and-mlops",
+  "question": "In a SageMaker TRAINING container, where do you find the hyperparameters file and the input data channels?",
+  "correct": 0,
+  "options": [
+   {
+    "text": "/opt/ml/input/config/hyperparameters.json and /opt/ml/input/data/<channel_name>/",
+    "why": "Correct. Config (hyperparameters.json) lives under input/config, and data is split into channels such as train, validation and test under input/data."
+   },
+   {
+    "text": "/opt/ml/model/hyperparameters.json and /opt/ml/code/data/",
+    "why": "The model directory holds model artifacts, and code holds your scripts. Neither is where these inputs land."
+   },
+   {
+    "text": "/opt/ml/output/hyperparameters.json and /opt/ml/output/data/",
+    "why": "The output directory is for results, including output/failure for errors."
+   },
+   {
+    "text": "/var/sagemaker/config and /var/sagemaker/data",
+    "why": "Not the SageMaker convention. Everything is rooted at /opt/ml."
+   }
+  ],
+  "takeaway": "Training structure: /opt/ml/input/config, /opt/ml/input/data/<channel>, /opt/ml/model, /opt/ml/code and /opt/ml/output (with failure under output)."
+ },
+ {
+  "id": 9,
+  "topic": "Containers & MLOps",
+  "topic_slug": "containers-and-mlops",
+  "question": "Where does SageMaker look for the model files inside a deployment (inference) container, and are they updated during inference?",
+  "correct": 1,
+  "options": [
+   {
+    "text": "/opt/ml/input/data, and yes, they are refined with each request",
+    "why": "Inference doesn't use input channels, and models aren't updated while serving."
+   },
+   {
+    "text": "/opt/ml/model, and no, they are not updated during inference",
+    "why": "Correct. The files updated during training are included there, but inference only applies the learned model. It doesn't change parameters."
+   },
+   {
+    "text": "/opt/ml/output, and yes, they update nightly",
+    "why": "Output is a training-side directory, and nothing updates automatically."
+   },
+   {
+    "text": "/opt/ml/code only, since code and model are the same",
+    "why": "Code and model artifacts are separate things."
+   }
+  ],
+  "takeaway": "This ties to a general rule from your notes: training updates a model's parameters, while inference does NOT."
+ },
+ {
+  "id": 10,
+  "topic": "Containers & MLOps",
+  "topic_slug": "containers-and-mlops",
+  "question": "Where do failure details from a failed training job go?",
+  "correct": 2,
+  "options": [
+   {
+    "text": "/opt/ml/failure at the top level",
+    "why": "The note corrects a diagram on this point."
+   },
+   {
+    "text": "/opt/ml/model/failure",
+    "why": "The model directory is for model artifacts."
+   },
+   {
+    "text": "/opt/ml/output/failure",
+    "why": "Correct. Failures go under output, separate from the successful output but within the same directory. Your notes flag the diagram as inaccurate on this."
+   },
+   {
+    "text": "They are only written to CloudWatch and never to disk",
+    "why": "Not how the container structure is defined."
+   }
+  ],
+  "takeaway": "Small details like this show up in scenario questions. Remember: output/ holds results, and output/failure holds errors."
+ },
+ {
+  "id": 11,
+  "topic": "Containers & MLOps",
+  "topic_slug": "containers-and-mlops",
+  "question": "In a Dockerfile for SageMaker training, which instruction defines train.py as the script entrypoint?",
+  "correct": 3,
+  "options": [
+   {
+    "text": "COPY train.py /opt/ml/model/train.py",
+    "why": "COPY puts the script in the image. Copying to /opt/ml/code is the right location, and it doesn't set an entrypoint by itself."
+   },
+   {
+    "text": "RUN pip3 install sagemaker-training",
+    "why": "This installs the SageMaker training toolkit. It doesn't choose the script."
+   },
+   {
+    "text": "FROM tensorflow/tensorflow:2.0.0a0",
+    "why": "FROM selects the base image."
+   },
+   {
+    "text": "ENV SAGEMAKER_PROGRAM train.py",
+    "why": "Correct. The environment variable SAGEMAKER_PROGRAM tells SageMaker which script to run. The script itself is copied to /opt/ml/code."
+   }
+  ],
+  "takeaway": "Dockerfile flow: FROM base image, install sagemaker-training, COPY your code to /opt/ml/code, then set ENV SAGEMAKER_PROGRAM."
+ },
+ {
+  "id": 12,
+  "topic": "Containers & MLOps",
+  "topic_slug": "containers-and-mlops",
+  "question": "At inference time, which component runs your Flask app that makes predictions, and what sits in front of it?",
+  "correct": 0,
+  "options": [
+   {
+    "text": "Gunicorn runs multiple instances of the Flask app (predictor.py), with nginx as the frontend",
+    "why": "Correct. The serve program launches Gunicorn, which runs the Flask application defined in predictor.py. nginx.conf configures the nginx frontend, and wsgi.py is the small wrapper used to invoke the app."
+   },
+   {
+    "text": "Apache Tomcat runs the Java app, with HAProxy in front",
+    "why": "Not part of the SageMaker container structure."
+   },
+   {
+    "text": "Spark runs the model, with Hadoop as the frontend",
+    "why": "Spark and Hadoop appear in the notes as data-processing tools, not as inference servers."
+   },
+   {
+    "text": "The train program doubles as the web server",
+    "why": "train/ is invoked when the container runs for training, and serve/ starts hosting."
+   }
+  ],
+  "takeaway": "Image layout: nginx.conf, predictor.py, serve/, train/ and wsgi.py. You can use separate images for training and deployment or combine both in one."
+ },
+ {
+  "id": 13,
+  "topic": "Containers & MLOps",
+  "topic_slug": "containers-and-mlops",
+  "question": "Which of these are the SageMaker Deep Learning Containers (DLCs) pre-built frameworks, and how is distributed training supported?",
+  "correct": 2,
+  "options": [
+   {
+    "text": "Only scikit-learn, trained through Spark",
+    "why": "scikit-learn and Spark ML have their own pre-built containers, but they're not the DLCs."
+   },
+   {
+    "text": "XGBoost and LightGBM, via MPI only",
+    "why": "These aren't listed as DLCs in your notes."
+   },
+   {
+    "text": "TensorFlow, PyTorch, MXNet and Chainer, with distributed training via Horovod or Parameter Servers",
+    "why": "Correct. DLCs are pre-built deep learning containers for those four frameworks."
+   },
+   {
+    "text": "Only TensorFlow, with no distributed support",
+    "why": "DLCs cover several frameworks and support distributed training."
+   }
+  ],
+  "takeaway": "Other options: pre-built scikit-learn/Spark ML containers, extending a pre-built image, or bringing your own training/inference code in a Docker image."
+ },
+ {
+  "id": 14,
+  "topic": "Built-in algorithms",
+  "topic_slug": "built-in-algorithms",
+  "question": "For the MLA-C01 exam, how deeply do you need to know SageMaker's built-in algorithms?",
+  "correct": 1,
+  "options": [
+   {
+    "text": "Memorize every hyperparameter and instance type for each one",
+    "why": "Your notes say that depth is expected for the Machine Learning Specialty (MLS-C01), not MLA-C01."
+   },
+   {
+    "text": "High-level: what each does, its use cases, and whether it is NN/DL-based",
+    "why": "Correct. Know whether an algorithm is powered by NNs/DL (batch_size, learning_rate and num_epochs matter) or is a simpler, traditional ML algorithm."
+   },
+   {
+    "text": "Only their names",
+    "why": "The exam expects you to know what each does and when to use it."
+   },
+   {
+    "text": "Not at all; the exam is only about Bedrock",
+    "why": "SageMaker is the heart of the exam."
+   }
+  ],
+  "takeaway": "Memorize the use case of each algorithm, and which ones are NN-based. NN-based ones make batch_size, learning_rate and num_epochs important hyperparameters."
+ },
+ {
+  "id": 15,
+  "topic": "Built-in algorithms",
+  "topic_slug": "built-in-algorithms",
+  "question": "Which statement about training and inference in supervised vs. unsupervised algorithms is correct?",
+  "correct": 3,
+  "options": [
+   {
+    "text": "Inference updates the model parameters in both cases",
+    "why": "The opposite. Inference never updates parameters."
+   },
+   {
+    "text": "Unsupervised algorithms train on labeled data",
+    "why": "Labeled data is what makes training supervised."
+   },
+   {
+    "text": "Supervised algorithms discover hidden patterns without labels",
+    "why": "That describes unsupervised learning."
+   },
+   {
+    "text": "Training updates parameters in both; inference applies what was learned and does not update them",
+    "why": "Correct. Supervised training maps inputs to labels, and unsupervised training uncovers inherent patterns. Inference then applies the learned mapping or structure to new data."
+   }
+  ],
+  "takeaway": "Supervised: train on labeled data, then predict labels for new data. Unsupervised: learn structure in the data, then apply it to new datapoints."
+ },
+ {
+  "id": 16,
+  "topic": "SageMaker basics",
+  "topic_slug": "sagemaker-basics",
+  "question": "In the AWS Console you search for 'SageMaker' and land on something different from the service the exam covers. What's going on?",
+  "correct": 2,
+  "options": [
+   {
+    "text": "The exam covers SageMaker Unified Studio only",
+    "why": "The exam covers SageMaker AI only, not the Unified Studio wrapper."
+   },
+   {
+    "text": "SageMaker was retired in 2025",
+    "why": "It wasn't retired. It was renamed."
+   },
+   {
+    "text": "In 2025 AWS rebranded SageMaker as 'SageMaker AI'; plain 'SageMaker' now leads to SageMaker Unified Studio",
+    "why": "Correct. Unified Studio (the SageMaker Platform) is a wrapper around SageMaker and Amazon DataZone. Look for SageMaker AI in the console. The exam covers SageMaker AI."
+   },
+   {
+    "text": "They are the same product with different URLs",
+    "why": "They're distinct. The platform wraps SageMaker AI and DataZone."
+   }
+  ],
+  "takeaway": "Your notes use 'SageMaker' as a synonym for SageMaker AI."
+ },
+ {
+  "id": 17,
+  "topic": "Data types",
+  "topic_slug": "data-types",
+  "question": "An email has a date and subject header plus a free-text body. How is this kind of data classified?",
+  "correct": 2,
+  "options": [
+   {
+    "text": "Structured",
+    "why": "Structured data has a defined schema in rows and columns. A free-text body doesn't fit that."
+   },
+   {
+    "text": "Unstructured",
+    "why": "Unstructured data has no schema at all. An email's header fields give it partial structure."
+   },
+   {
+    "text": "Semi-structured",
+    "why": "Correct. Semi-structured data has some structure (tags, hierarchies). Email headers are structured (date, subject) while the body is unstructured. XML, JSON and varied-format log files are other examples."
+   },
+   {
+    "text": "Columnar",
+    "why": "Columnar describes a storage layout (like Parquet), not a data-structure category."
+   }
+  ],
+  "takeaway": "Structured = defined schema, easy to query. Unstructured = no schema, needs heavy preprocessing (raw text, video, audio, images). Semi-structured = in between, more flexible than structured but less chaotic than unstructured."
+ },
+ {
+  "id": 18,
+  "topic": "Data types",
+  "topic_slug": "data-types",
+  "question": "Which type of data requires the heaviest preprocessing before you can query it?",
+  "correct": 1,
+  "options": [
+   {
+    "text": "Rows in a relational database",
+    "why": "These have a schema and are easily queryable."
+   },
+   {
+    "text": "Raw media and raw text (video, audio, images, emails)",
+    "why": "Correct. Unstructured data has no schema or predefined structure and may come in various formats, so it needs heavy preprocessing."
+   },
+   {
+    "text": "A CSV file with consistent columns",
+    "why": "Consistent columns make this structured."
+   },
+   {
+    "text": "JSON files",
+    "why": "JSON is semi-structured. Its tags give it some structure."
+   }
+  ],
+  "takeaway": "This is why services like Glue crawlers matter: once unstructured data is cataloged with a schema, tools like Athena can treat it like structured data."
+ },
+ {
+  "id": 19,
+  "topic": "Amazon S3",
+  "topic_slug": "amazon-s3",
+  "question": "You need a drive you can mount on an instance (like K:\\ or /images). Why can't S3 do this, and what should you use?",
+  "correct": 1,
+  "options": [
+   {
+    "text": "S3 can be mounted directly; just use the console",
+    "why": "S3 can't be mounted as a drive."
+   },
+   {
+    "text": "S3 is object storage, not block storage; use Amazon EBS for mountable block storage",
+    "why": "Correct. S3 is also not file storage (you can't browse it like a file system). EFS or FSx provide file storage."
+   },
+   {
+    "text": "S3 is file storage, so use Glacier for block storage",
+    "why": "S3 is object storage, and Glacier is an archival tier, not block storage."
+   },
+   {
+    "text": "S3 is block storage, so use EFS for object storage",
+    "why": "This is backwards. EFS is file storage."
+   }
+  ],
+  "takeaway": "Object storage (S3) vs file storage (EFS/FSx) vs block storage (EBS) is a classic distinction."
+ },
+ {
+  "id": 20,
+  "topic": "Amazon S3",
+  "topic_slug": "amazon-s3",
+  "question": "According to your S3 101 notes, what is the maximum size of a single S3 object?",
+  "correct": 2,
+  "options": [
+   {
+    "text": "5 GB",
+    "why": "5 GB is the cap for a single-stream PutObject upload, not the object size limit."
+   },
+   {
+    "text": "5 TB",
+    "why": "This was the old limit. Note your S3 Performance page still mentions 5 TB, but the S3 101 page lists a larger one."
+   },
+   {
+    "text": "50 TB",
+    "why": "Correct per your S3 101 notes: 50 TB is a HARD limit (memorize), and objects can range from 0 B up to it."
+   },
+   {
+    "text": "Unlimited",
+    "why": "False. There is a hard limit."
+   }
+  ],
+  "takeaway": "Heads-up: your Performance Optimization page still says S3 stores objects up to 5 TB. The S3 101 page (updated) says 50 TB. Treat 50 TB as current."
+ },
+ {
+  "id": 21,
+  "topic": "Amazon S3",
+  "topic_slug": "amazon-s3",
+  "question": "In March 2026 AWS relaxed a long-standing S3 bucket requirement. Which one?",
+  "correct": 3,
+  "options": [
+   {
+    "text": "Buckets can now exist without a Region",
+    "why": "Buckets are still Region-based."
+   },
+   {
+    "text": "Objects no longer need keys",
+    "why": "Keys still identify objects, like a filename."
+   },
+   {
+    "text": "Buckets are now public by default",
+    "why": "S3 is private by default for security."
+   },
+   {
+    "text": "Bucket names no longer have to be globally unique; account regional namespaces let you create buckets in your own reserved namespace",
+    "why": "Correct. When creating a bucket you can choose the global namespace or the newly recommended account regional namespace. Under the hood a suffix unique to your account and Region is appended."
+   }
+  ],
+  "takeaway": "S3 is a global storage platform that is regionally based and resilient: data is stored in a Region and replicated across its AZs."
+ },
+ {
+  "id": 22,
+  "topic": "Amazon S3",
+  "topic_slug": "amazon-s3",
+  "question": "Why use a bucket policy instead of an IAM identity policy to give another AWS account access to a bucket?",
+  "correct": 0,
+  "options": [
+   {
+    "text": "Resource policies can reference principals outside your account (and anonymous ones); identity policies can only attach to identities in your own account",
+    "why": "Correct. Bucket policies are very flexible: allow or deny cross-account identities, anonymous principals (public access), block IP ranges, or deny users who haven't enabled MFA."
+   },
+   {
+    "text": "Identity policies can't be used with S3",
+    "why": "They can allow or deny access to S3. Final permissions are the overlap of all applicable policies."
+   },
+   {
+    "text": "Bucket policies are the legacy mechanism",
+    "why": "The legacy mechanism is ACLs."
+   },
+   {
+    "text": "Bucket policies don't need a Principal element",
+    "why": "They do. A Principal is required in resource policies, unlike identity policies."
+   }
+  ],
+  "takeaway": "S3 is private by default. The Principal element appears in resource policies but not in identity policies, where the principal is the identity the policy is attached to."
+ },
+ {
+  "id": 23,
+  "topic": "Amazon S3",
+  "topic_slug": "amazon-s3",
+  "question": "In a bucket policy statement, what does \"Principal\": \"*\" mean?",
+  "correct": 2,
+  "options": [
+   {
+    "text": "All IAM users in your own account",
+    "why": "That would need specific identities, not a wildcard."
+   },
+   {
+    "text": "Only the bucket owner",
+    "why": "The owner doesn't need a policy statement to access its own bucket."
+   },
+   {
+    "text": "The anonymous principal, i.e. public access",
+    "why": "Correct. This is how a bucket policy grants access to unauthenticated users."
+   },
+   {
+    "text": "All AWS services",
+    "why": "Services are referenced with service principals, not '*'."
+   }
+  ],
+  "takeaway": "This is exactly why Block Public Access exists as a failsafe against accidentally public buckets."
+ },
+ {
+  "id": 24,
+  "topic": "Amazon S3",
+  "topic_slug": "amazon-s3",
+  "question": "Of the S3 security mechanisms, which is described as legacy and which as a failsafe?",
+  "correct": 1,
+  "options": [
+   {
+    "text": "Bucket policies are legacy; IAM policies are the failsafe",
+    "why": "Bucket policies are current resource policies."
+   },
+   {
+    "text": "ACLs are legacy; Block Public Access settings are the failsafe",
+    "why": "Correct. ACLs are legacy. Block Public Access is a failsafe layered on top of the other settings."
+   },
+   {
+    "text": "Block Public Access is legacy; ACLs are the failsafe",
+    "why": "This is reversed."
+   },
+   {
+    "text": "IAM identity policies are legacy; bucket policies are the failsafe",
+    "why": "Identity policies are not legacy."
+   }
+  ],
+  "takeaway": "Three S3-specific settings: bucket policies (resource policies), ACLs (legacy) and Block Public Access (failsafe). IAM identity policies apply too."
+ },
+ {
+  "id": 25,
+  "topic": "Amazon S3",
+  "topic_slug": "amazon-s3",
+  "question": "You turn on S3 static website hosting. What must you do so people can browse it, and what do you need for HTTPS?",
+  "correct": 3,
+  "options": [
+   {
+    "text": "Enable versioning; HTTPS works natively on the website endpoint",
+    "why": "Versioning is unrelated, and the website endpoint is HTTP only."
+   },
+   {
+    "text": "Enable MFA Delete; add Route 53 for HTTPS",
+    "why": "MFA Delete is unrelated, and Route 53 is DNS, not TLS."
+   },
+   {
+    "text": "Nothing; the website is public automatically; HTTPS is built in",
+    "why": "Block Public Access must be disabled, and HTTPS isn't built in."
+   },
+   {
+    "text": "Disable Block Public Access (and make the content public); put Amazon CloudFront in front for HTTPS",
+    "why": "Correct. Without CloudFront you can only reach the website endpoint over HTTP."
+   }
+  ],
+  "takeaway": "Static hosting needs an index document and an error document (e.g. for a 404). Use cases: offloading media from compute, out-of-band failover pages, and simple blogs/portfolios."
+ },
+ {
+  "id": 26,
+  "topic": "Amazon S3",
+  "topic_slug": "amazon-s3",
+  "question": "You want to serve a static site at example.org from S3 using Route 53. What matters about the bucket?",
+  "correct": 0,
+  "options": [
+   {
+    "text": "The bucket must be named example.org",
+    "why": "Correct. Bucket name matters here. You also create a DNS record in Route 53 pointing to the bucket."
+   },
+   {
+    "text": "The bucket must be in us-east-1",
+    "why": "No such requirement is described."
+   },
+   {
+    "text": "The bucket must have versioning enabled",
+    "why": "Unrelated to custom domains."
+   },
+   {
+    "text": "The bucket must be named with a random suffix",
+    "why": "The opposite of what's needed."
+   }
+  ],
+  "takeaway": "Custom domains require you to pay for the DNS domain. The default AWS-provided endpoint works without one."
+ },
+ {
+  "id": 27,
+  "topic": "Amazon S3",
+  "topic_slug": "amazon-s3",
+  "question": "You suspend versioning on a bucket that has many old object versions. What happens to those old versions?",
+  "correct": 2,
+  "options": [
+   {
+    "text": "They are deleted automatically",
+    "why": "Suspending does NOT remove old versions."
+   },
+   {
+    "text": "They are moved to Glacier for free",
+    "why": "Nothing like that happens."
+   },
+   {
+    "text": "They remain, and you are still billed for them",
+    "why": "Correct. Once enabled, versioning can never be disabled, only suspended. All versions consume storage, so 5 versions of an object cost like 5 objects."
+   },
+   {
+    "text": "They become unreadable",
+    "why": "They remain accessible by version ID."
+   }
+  ],
+  "takeaway": "To remove old versions you must delete each old version (version DELETE), or download current versions, delete the bucket and recreate it."
+ },
+ {
+  "id": 28,
+  "topic": "Amazon S3",
+  "topic_slug": "amazon-s3",
+  "question": "Versioning is enabled and you send a standard DELETE (no version ID). What happens, and how do you restore the object?",
+  "correct": 1,
+  "options": [
+   {
+    "text": "The object is permanently deleted; it can't be restored",
+    "why": "That is how a DELETE behaves when versioning is disabled."
+   },
+   {
+    "text": "A delete marker is created and previous versions remain; deleting the delete marker restores the object",
+    "why": "Correct. The marker 'hides' the object, so a standard GET returns nothing. Deleting the marker makes the previous current version current again."
+   },
+   {
+    "text": "Only the oldest version is deleted",
+    "why": "Not how it works."
+   },
+   {
+    "text": "The bucket switches to the suspended state",
+    "why": "Delete operations don't change the versioning state."
+   }
+  ],
+  "takeaway": "A version DELETE (with an ID) removes that specific version permanently. If it was the latest, the second newest becomes current."
+ },
+ {
+  "id": 29,
+  "topic": "Amazon S3",
+  "topic_slug": "amazon-s3",
+  "question": "A default s3:PutObject is a single stream (up to 5 GB). Which statement about Multipart Upload is correct?",
+  "correct": 0,
+  "options": [
+   {
+    "text": "The blob is split into up to 10,000 parts (5 MB to 5 GB each) uploaded in parallel, and a failed part can be retried on its own",
+    "why": "Correct. This improves speed and reliability, especially for large objects and global apps. Transfer Acceleration is the other option for global apps."
+   },
+   {
+    "text": "The blob is split into a maximum of 100 parts",
+    "why": "The maximum is 10,000 parts."
+   },
+   {
+    "text": "If one part fails, the whole upload must restart",
+    "why": "That's the single-stream problem. Parts fail and restart in isolation."
+   },
+   {
+    "text": "It only works for objects smaller than 100 MB",
+    "why": "It's meant for large blobs (100 MB and up)."
+   }
+  ],
+  "takeaway": "Single-stream disadvantages: a failed stream means a full restart, and speed is limited by one stream. The farther users are from the bucket, the worse it gets."
+ },
+ {
+  "id": 30,
+  "topic": "Feature engineering",
+  "topic_slug": "feature-engineering",
+  "question": "What does the 'curse of dimensionality' tell you about features?",
+  "correct": 3,
+  "options": [
+   {
+    "text": "More features always improve the model",
+    "why": "The opposite: more features does not mean better."
+   },
+   {
+    "text": "Features should be duplicated to reduce bias",
+    "why": "Not related."
+   },
+   {
+    "text": "Categorical features cause the problem, numeric ones don't",
+    "why": "Dimensionality is about the number of features."
+   },
+   {
+    "text": "Every feature is a new dimension, so selecting the most relevant features matters",
+    "why": "Correct. Much of feature engineering is selecting relevant features, where domain knowledge comes in. PCA and K-Means can help reduce dimensions."
+   }
+  ],
+  "takeaway": "Feature engineering = using domain knowledge to create better features. Your notes call it the 'art of ML' and the most critical part of a good implementation."
+ },
+ {
+  "id": 31,
+  "topic": "Feature engineering",
+  "topic_slug": "feature-engineering",
+  "question": "Income data contains a few billionaires that distort the average. Which imputation is better for missing values?",
+  "correct": 1,
+  "options": [
+   {
+    "text": "Mean replacement",
+    "why": "The mean is distorted by the outliers."
+   },
+   {
+    "text": "Median replacement",
+    "why": "Correct. The median is more useful when outliers distort the mean."
+   },
+   {
+    "text": "Always drop the whole column",
+    "why": "Imputation exists to avoid losing data."
+   },
+   {
+    "text": "Replace with zero",
+    "why": "This introduces its own distortion."
+   }
+  ],
+  "takeaway": "Mean imputation is fast and easy and doesn't change the dataset's mean or sample size, but it's not very accurate."
+ },
+ {
+  "id": 32,
+  "topic": "Feature engineering",
+  "topic_slug": "feature-engineering",
+  "question": "What is a major weakness of mean imputation?",
+  "correct": 2,
+  "options": [
+   {
+    "text": "It changes the sample size",
+    "why": "It keeps the sample size."
+   },
+   {
+    "text": "It is slow on large datasets",
+    "why": "It's fast and easy."
+   },
+   {
+    "text": "It works per column and misses correlations between features (e.g. age and income)",
+    "why": "Correct. It also only works for numeric features."
+   },
+   {
+    "text": "It can't handle numeric features",
+    "why": "It handles numeric features only, so the issue is the opposite."
+   }
+  ],
+  "takeaway": "If age and income are correlated, simply imputing means muddies that relationship."
+ },
+ {
+  "id": 33,
+  "topic": "Feature engineering",
+  "topic_slug": "feature-engineering",
+  "question": "A categorical feature has missing values. Which simple imputation could work?",
+  "correct": 0,
+  "options": [
+   {
+    "text": "Most frequent value",
+    "why": "Correct. Mean and median can only be calculated on numeric features, but the most frequent value works for categories."
+   },
+   {
+    "text": "Mean of the column",
+    "why": "Not defined for categories."
+   },
+   {
+    "text": "Median of the column",
+    "why": "Not defined for categories."
+   },
+   {
+    "text": "Standard deviation",
+    "why": "Not an imputation method."
+   }
+  ],
+  "takeaway": "Common problems feature engineering addresses: missing data, unbalanced data, outliers and data transformation."
+ },
+ {
+  "id": 34,
+  "topic": "Feature engineering",
+  "topic_slug": "feature-engineering",
+  "question": "Which techniques does your note list for unsupervised dimensionality reduction?",
+  "correct": 1,
+  "options": [
+   {
+    "text": "Linear regression and XGBoost",
+    "why": "These are supervised algorithms."
+   },
+   {
+    "text": "PCA and K-Means",
+    "why": "Correct, as listed in your notes."
+   },
+   {
+    "text": "TF-IDF and Word2Vec",
+    "why": "These are text representation techniques."
+   },
+   {
+    "text": "Random Cut Forest and DeepAR",
+    "why": "RCF is anomaly detection and DeepAR is forecasting."
+   }
+  ],
+  "takeaway": "Reducing dimensions fights the curse of dimensionality."
+ },
+ {
+  "id": 35,
+  "topic": "Hadoop, Spark & EMR",
+  "topic_slug": "hadoop-spark-and-emr",
+  "question": "Match the Hadoop modules to their roles.",
+  "correct": 2,
+  "options": [
+   {
+    "text": "HDFS = resource negotiation; YARN = storage; MapReduce = scheduling",
+    "why": "Mixed up."
+   },
+   {
+    "text": "HDFS = processing; YARN = storage; MapReduce = scheduling",
+    "why": "Mixed up."
+   },
+   {
+    "text": "HDFS = distributed storage; YARN = resource negotiator/scheduler; MapReduce = parallel processing",
+    "why": "Correct. Hadoop Common/Core provides the libraries the other modules run on. MapReduce uses mapper functions (data to key-value pairs) and reduce functions (aggregation)."
+   },
+   {
+    "text": "HDFS = scheduling; YARN = processing; MapReduce = storage",
+    "why": "Mixed up."
+   }
+  ],
+  "takeaway": "HDFS is distributed, so it's scalable and resilient (data replicated across nodes)."
+ },
+ {
+  "id": 36,
+  "topic": "Hadoop, Spark & EMR",
+  "topic_slug": "hadoop-spark-and-emr",
+  "question": "How does Apache Spark relate to a Hadoop cluster?",
+  "correct": 0,
+  "options": [
+   {
+    "text": "It can run on top of HDFS thanks to YARN, replacing MapReduce",
+    "why": "Correct. Spark is an open-source distributed processing system for big data workloads."
+   },
+   {
+    "text": "It replaces HDFS and YARN entirely",
+    "why": "It uses them."
+   },
+   {
+    "text": "It's a closed-source AWS service",
+    "why": "It's open source."
+   },
+   {
+    "text": "It can only run on a single machine",
+    "why": "It's distributed."
+   }
+  ],
+  "takeaway": "This is why EMR bundles Spark, plus HBase, Presto, Flink and Hive."
+ },
+ {
+  "id": 37,
+  "topic": "Hadoop, Spark & EMR",
+  "topic_slug": "hadoop-spark-and-emr",
+  "question": "Which EMR node type is a good fit for spot instances, and why?",
+  "correct": 1,
+  "options": [
+   {
+    "text": "Master node, because there are many",
+    "why": "There is a single master node, and losing it is critical."
+   },
+   {
+    "text": "Task nodes, because they run tasks but don't host data, so removing them risks no data loss",
+    "why": "Correct. Core nodes host HDFS data and run tasks, and scaling them carries some risk of data loss."
+   },
+   {
+    "text": "Core nodes, because they host HDFS data",
+    "why": "That makes them risky for spot."
+   },
+   {
+    "text": "All node types equally",
+    "why": "Core and master nodes shouldn't be on spot."
+   }
+  ],
+  "takeaway": "Master node: manages the cluster (a single EC2 instance). Core nodes: HDFS + tasks. Task nodes: tasks only."
+ },
+ {
+  "id": 38,
+  "topic": "Hadoop, Spark & EMR",
+  "topic_slug": "hadoop-spark-and-emr",
+  "question": "You want EMR data to survive cluster termination. Which storage option fits?",
+  "correct": 0,
+  "options": [
+   {
+    "text": "EMRFS (access S3 as if it were HDFS)",
+    "why": "Correct. It's still pretty fast and persistent."
+   },
+   {
+    "text": "HDFS",
+    "why": "HDFS is the default, very fast, but ephemeral: it disappears with the cluster."
+   },
+   {
+    "text": "Local file system",
+    "why": "Ephemeral and not distributed."
+   },
+   {
+    "text": "Instance store only",
+    "why": "Not persistent."
+   }
+  ],
+  "takeaway": "HDFS block size defaults to 128 MB. EBS for HDFS can back up HDFS data."
+ },
+ {
+  "id": 39,
+  "topic": "Hadoop, Spark & EMR",
+  "topic_slug": "hadoop-spark-and-emr",
+  "question": "What is the difference between transient and long-running EMR clusters?",
+  "correct": 2,
+  "options": [
+   {
+    "text": "Transient clusters never use spot instances",
+    "why": "They can use task nodes on spot."
+   },
+   {
+    "text": "Long-running clusters terminate after each job",
+    "why": "That's the transient behavior."
+   },
+   {
+    "text": "Transient clusters terminate when the job finishes; long-running clusters stay up for interactive use (ad-hoc queries, experimenting) and can use reserved instances",
+    "why": "Correct."
+   },
+   {
+    "text": "There is no difference",
+    "why": "They differ in persistence."
+   }
+  ],
+  "takeaway": "Pick transient for batch jobs to save cost, and long-running for exploration."
+ },
+ {
+  "id": 40,
+  "topic": "Hadoop, Spark & EMR",
+  "topic_slug": "hadoop-spark-and-emr",
+  "question": "What does EMR Serverless change?",
+  "correct": 3,
+  "options": [
+   {
+    "text": "You manage the master node yourself",
+    "why": "The point is to manage less."
+   },
+   {
+    "text": "Only Hive is supported",
+    "why": "It's not limited to Hive."
+   },
+   {
+    "text": "It replaces S3",
+    "why": "It doesn't replace S3."
+   },
+   {
+    "text": "AWS provisions and scales the worker nodes automatically, so you don't estimate capacity",
+    "why": "Correct. Billing for classic EMR is an hourly EMR charge plus EC2 charges."
+   }
+  ],
+  "takeaway": "In the TF-IDF lab you use an EMR Studio notebook on EMR Serverless to avoid sizing a cluster."
+ },
+ {
+  "id": 41,
+  "topic": "Glue & Lake Formation",
+  "topic_slug": "glue-and-lake-formation",
+  "question": "What are AWS Glue's two main functions?",
+  "correct": 0,
+  "options": [
+   {
+    "text": "Serverless cataloging (schemas and tables) and serverless ETL (feature engineering on raw data, then load to a target)",
+    "why": "Correct. Glue runs Apache Spark under the hood."
+   },
+   {
+    "text": "Real-time streaming and model hosting",
+    "why": "Not Glue's functions."
+   },
+   {
+    "text": "Data visualization and dashboards",
+    "why": "That's QuickSight."
+   },
+   {
+    "text": "Interactive SQL and workload isolation",
+    "why": "That's Athena."
+   }
+  ],
+  "takeaway": "Glue acts as the 'glue' between unstructured data in stores and services that analyze structured data."
+ },
+ {
+  "id": 42,
+  "topic": "Glue & Lake Formation",
+  "topic_slug": "glue-and-lake-formation",
+  "question": "A Glue crawler scans your S3 data. Where do the results go, and where does the data stay?",
+  "correct": 2,
+  "options": [
+   {
+    "text": "The crawler copies the data into the Data Catalog",
+    "why": "The catalog doesn't hold data."
+   },
+   {
+    "text": "The data moves to Glue's own storage",
+    "why": "It stays put."
+   },
+   {
+    "text": "The schema/metadata goes to the Data Catalog; the original data stays in S3",
+    "why": "Correct. Once cataloged, Athena, EMR and others can read it like structured data."
+   },
+   {
+    "text": "Both go to Lake Formation",
+    "why": "Not how it works."
+   }
+  ],
+  "takeaway": "The Data Catalog is compatible with the Hive metastore (import/export). Its free tier covers the first million objects stored and accesses."
+ },
+ {
+  "id": 43,
+  "topic": "Glue & Lake Formation",
+  "topic_slug": "glue-and-lake-formation",
+  "question": "You mostly query IoT data by device. Which S3 layout is better for Glue crawler partitions?",
+  "correct": 1,
+  "options": [
+   {
+    "text": "yyyy/mm/dd/device",
+    "why": "This favors date-first queries."
+   },
+   {
+    "text": "device/yyyy/mm/dd",
+    "why": "Correct. Crawlers extract partitions from how S3 data is organized, so put the main query dimension first."
+   },
+   {
+    "text": "A single flat folder",
+    "why": "No partitions to extract."
+   },
+   {
+    "text": "Random prefixes",
+    "why": "Defeats partitioning."
+   }
+  ],
+  "takeaway": "Think upfront about how the data lake will be queried. Some structure in the unstructured data is desired."
+ },
+ {
+  "id": 44,
+  "topic": "Glue & Lake Formation",
+  "topic_slug": "glue-and-lake-formation",
+  "question": "What do Glue job bookmarks do, and what is their limitation?",
+  "correct": 3,
+  "options": [
+   {
+    "text": "They schedule jobs; they only run daily",
+    "why": "That's triggers/the scheduler."
+   },
+   {
+    "text": "They convert DynamicFrames; they only handle JSON",
+    "why": "Not their function."
+   },
+   {
+    "text": "They encrypt job state; only in us-east-1",
+    "why": "Not their function."
+   },
+   {
+    "text": "They persist job state to avoid reprocessing old data; they only handle new rows, not updated rows",
+    "why": "Correct."
+   }
+  ],
+  "takeaway": "Glue ETL can be on-demand or event-driven (Glue Scheduler/Triggers), and success/failure can go to EventBridge/CloudWatch. DynamicFrame = collection of self-describing DynamicRecords."
+ },
+ {
+  "id": 45,
+  "topic": "Glue & Lake Formation",
+  "topic_slug": "glue-and-lake-formation",
+  "question": "Which statement about AWS Lake Formation is correct?",
+  "correct": 2,
+  "options": [
+   {
+    "text": "It is a standalone engine unrelated to Glue",
+    "why": "It's built on top of Glue."
+   },
+   {
+    "text": "It charges a per-GB fee for the lake",
+    "why": "There's no cost for Lake Formation itself."
+   },
+   {
+    "text": "It's built on Glue, costs nothing itself, and you pay for underlying services (Glue, S3, EMR, Athena, Redshift)",
+    "why": "Correct. It manages S3 data lakes: loading data, partitions, encryption and keys, transformation jobs, access control and auditing."
+   },
+   {
+    "text": "It can only ingest from S3",
+    "why": "Sources can be varied: S3, RDBMS, NoSQL, on-prem or cloud."
+   }
+  ],
+  "takeaway": "Process: create an IAM user for the data analyst, create a Glue connection, create the S3 bucket, register the path in Lake Formation and grant permissions, then create a database for the catalog."
+ },
+ {
+  "id": 46,
+  "topic": "Glue & Lake Formation",
+  "topic_slug": "glue-and-lake-formation",
+  "question": "Which engines can read a Lake Formation data lake directly, and what is NOT supported?",
+  "correct": 1,
+  "options": [
+   {
+    "text": "Only Athena; nothing is unsupported",
+    "why": "EMR and Redshift Spectrum can too."
+   },
+   {
+    "text": "Athena, Redshift (Spectrum) and EMR; manifests in Athena or Redshift queries are not supported",
+    "why": "Correct."
+   },
+   {
+    "text": "Only EMR; Athena queries are unsupported",
+    "why": "Athena is supported."
+   },
+   {
+    "text": "Only QuickSight; Redshift is unsupported",
+    "why": "Redshift Spectrum is supported."
+   }
+  ],
+  "takeaway": "Lake Formation is a security and management layer over the S3 lake and the Glue catalog."
+ },
+ {
+  "id": 47,
+  "topic": "Athena & QuickSight",
+  "topic_slug": "athena-and-quicksight",
+  "question": "Which Athena data formats are both columnar AND splittable?",
+  "correct": 2,
+  "options": [
+   {
+    "text": "CSV and TSV",
+    "why": "Human readable, but neither columnar nor splittable."
+   },
+   {
+    "text": "JSON and Avro",
+    "why": "JSON is neither. Avro is splittable but not columnar."
+   },
+   {
+    "text": "ORC and Parquet",
+    "why": "Correct. Neither is human readable, but both are columnar and splittable."
+   },
+   {
+    "text": "CSV and Avro",
+    "why": "Neither is columnar."
+   }
+  ],
+  "takeaway": "Athena is a serverless, interactive SQL-like query service (Presto under the hood) that supports Snappy, Zlib, LZO and Gzip compression."
+ },
+ {
+  "id": 48,
+  "topic": "Athena & QuickSight",
+  "topic_slug": "athena-and-quicksight",
+  "question": "What are Athena Workgroups for?",
+  "correct": 0,
+  "options": [
+   {
+    "text": "Organizing or segregating Athena usage by users, teams, apps or workloads",
+    "why": "Correct."
+   },
+   {
+    "text": "Compressing query results",
+    "why": "Compression is a data setting."
+   },
+   {
+    "text": "Storing the Glue Data Catalog",
+    "why": "The catalog is a Glue feature."
+   },
+   {
+    "text": "Training ML models",
+    "why": "Not their purpose."
+   }
+  ],
+  "takeaway": "Athena integrates with notebooks (Jupyter, Zeppelin, RStudio) and with QuickSight, plus ODBC/JDBC tools."
+ },
+ {
+  "id": 49,
+  "topic": "Athena & QuickSight",
+  "topic_slug": "athena-and-quicksight",
+  "question": "What is SPICE in QuickSight, and what is its default limit?",
+  "correct": 1,
+  "options": [
+   {
+    "text": "A security protocol; 1 GB per account",
+    "why": "It's a calculation engine, not a protocol."
+   },
+   {
+    "text": "Super-fast, Parallel, In-memory Calculation Engine; 10 GB per user by default (increasable at extra cost)",
+    "why": "Correct. Datasets imported into SPICE produce visualizations very fast using columnar storage and in-memory machine-code generation."
+   },
+   {
+    "text": "A streaming service; unlimited",
+    "why": "It's not streaming."
+   },
+   {
+    "text": "A SQL dialect; 100 GB",
+    "why": "It's not a dialect."
+   }
+  ],
+  "takeaway": "SPICE is highly available and durable, and scales to hundreds of thousands of users."
+ },
+ {
+  "id": 50,
+  "topic": "Athena & QuickSight",
+  "topic_slug": "athena-and-quicksight",
+  "question": "Which ML capabilities does QuickSight offer, and what powers anomaly detection?",
+  "correct": 3,
+  "options": [
+   {
+    "text": "Image classification; K-Means",
+    "why": "Not QuickSight features."
+   },
+   {
+    "text": "Custom model training; XGBoost",
+    "why": "QuickSight doesn't train custom models."
+   },
+   {
+    "text": "Sentiment analysis; Linear Learner",
+    "why": "Not listed."
+   },
+   {
+    "text": "Anomaly detection (Random Cut Forest), forecasting (seasonality-aware), auto-narratives, and QuickSight Q",
+    "why": "Correct. Your notes say that's all the ML capabilities so far, and non-tech users can use them."
+   }
+  ],
+  "takeaway": "QuickSight Q answers BI questions in natural language (e.g. 'top-selling items in Florida'), powered by Amazon Q."
+ },
+ {
+  "id": 51,
+  "topic": "Athena & QuickSight",
+  "topic_slug": "athena-and-quicksight",
+  "question": "You have ETL-intensive workloads feeding dashboards. What do your notes say about QuickSight?",
+  "correct": 2,
+  "options": [
+   {
+    "text": "QuickSight is the best ETL tool",
+    "why": "It only does simple, limited ETL."
+   },
+   {
+    "text": "Use QuickSight Q for ETL",
+    "why": "Q is natural-language BI."
+   },
+   {
+    "text": "Anti-pattern: use Glue for ETL-intensive work; QuickSight only does limited ETL",
+    "why": "Correct."
+   },
+   {
+    "text": "Use SPICE as the ETL engine",
+    "why": "SPICE accelerates queries, not ETL."
+   }
+  ],
+  "takeaway": "QuickSight is geared toward business users: dashboards, KPIs, ad-hoc exploration."
+ },
+ {
+  "id": 52,
+  "topic": "Athena & QuickSight",
+  "topic_slug": "athena-and-quicksight",
+  "question": "Which statement about QuickSight security and users is correct?",
+  "correct": 1,
+  "options": [
+   {
+    "text": "Only IAM users are supported",
+    "why": "Email signup and SAML SSO are supported too."
+   },
+   {
+    "text": "Row-level security is supported, and column-level security is available in Enterprise Edition; users are billed per user",
+    "why": "Correct. MS Active Directory integration is also Enterprise Edition, and MFA is supported."
+   },
+   {
+    "text": "There is no row-level security",
+    "why": "RLS is supported."
+   },
+   {
+    "text": "It's billed per query",
+    "why": "It's billed per user."
+   }
+  ],
+  "takeaway": "For private VPC access to data sources, use ENI or Direct Connect; otherwise add QuickSight's IP range to your DB security groups."
+ },
+ {
+  "id": 53,
+  "topic": "TF-IDF",
+  "topic_slug": "tf-idf",
+  "question": "What does TF-IDF measure?",
+  "correct": 1,
+  "options": [
+   {
+    "text": "How fast a document loads",
+    "why": "Not related."
+   },
+   {
+    "text": "How relevant a term is in a document, by weighing its frequency in that document against how common it is across all documents",
+    "why": "Correct. Words like 'the' and 'a' are frequent everywhere, so they get filtered out and relevant terms remain."
+   },
+   {
+    "text": "The sentiment of a document",
+    "why": "Not what it measures."
+   },
+   {
+    "text": "The number of documents in a corpus",
+    "why": "Not what it measures."
+   }
+  ],
+  "takeaway": "TF = term frequency in one document. DF = how common the term is across all documents. IDF is the inverse, and a log is used because frequencies are exponentially distributed."
+ },
+ {
+  "id": 54,
+  "topic": "TF-IDF",
+  "topic_slug": "tf-idf",
+  "question": "Which statement about TF-IDF's assumptions and nuances is correct?",
+  "correct": 2,
+  "options": [
+   {
+    "text": "It understands word order and grammar",
+    "why": "It treats documents as a bag of words."
+   },
+   {
+    "text": "It only works on single words",
+    "why": "It works for unigrams and n-grams (bigrams, trigrams)."
+   },
+   {
+    "text": "It assumes a bag of words; parsing into one can be most of the work and involves feature engineering (capitalization, synonyms, misspellings, tenses)",
+    "why": "Correct. Words can also be represented as hashes for efficiency."
+   },
+   {
+    "text": "It requires labeled data",
+    "why": "It's a statistical technique, not supervised learning."
+   }
+  ],
+  "takeaway": "TF-IDF is an old-school technique from search: it surfaces documents most relevant to search terms."
+ },
+ {
+  "id": 55,
+  "topic": "TF-IDF",
+  "topic_slug": "tf-idf",
+  "question": "Why does the lab run TF-IDF with Spark on EMR Serverless?",
+  "correct": 3,
+  "options": [
+   {
+    "text": "TF-IDF can only run on Hadoop MapReduce",
+    "why": "Spark handles it."
+   },
+   {
+    "text": "It's required by the Wikipedia dataset license",
+    "why": "Not a reason."
+   },
+   {
+    "text": "EMR Serverless is always 100% reliable",
+    "why": "Your notes say that if the workflow gets stuck, restart, since it isn't always reliable."
+   },
+   {
+    "text": "TF-IDF is difficult to handle at scale, so Spark helps, and EMR Serverless means you don't estimate capacity",
+    "why": "Correct. The lab uses an EMR Studio interactive PySpark notebook on a small subset of Wikipedia."
+   }
+  ],
+  "takeaway": "Pipeline idea: parse into bag of words, hash the terms, compute TF and IDF in Spark."
+ },
+ {
+  "id": 56,
+  "topic": "Data labeling & Data Wrangler",
+  "topic_slug": "data-labeling-and-data-wrangler",
+  "question": "What is SageMaker Ground Truth used for, and who can do the labeling?",
+  "correct": 1,
+  "options": [
+   {
+    "text": "Monitoring a deployed model for drift; only AWS staff label",
+    "why": "Drift monitoring is a different capability."
+   },
+   {
+    "text": "Having humans label data to prepare a training dataset (e.g. image classification, bounding boxes); reviewers can be Mechanical Turk workers, your employees or third-party vendors",
+    "why": "Correct. Benefits: consistency, efficiency, flexibility."
+   },
+   {
+    "text": "Automatically imputing missing values; no humans involved",
+    "why": "That's feature engineering, e.g. in Data Wrangler."
+   },
+   {
+    "text": "Hosting real-time endpoints; labelers are IAM users",
+    "why": "Hosting is a different capability."
+   }
+  ],
+  "takeaway": "Other ways to generate training labels: Rekognition, Comprehend, pre-trained models or unsupervised techniques."
+ },
+ {
+  "id": 57,
+  "topic": "Data labeling & Data Wrangler",
+  "topic_slug": "data-labeling-and-data-wrangler",
+  "question": "What is the key difference between SageMaker Ground Truth and Amazon Augmented AI (A2I)?",
+  "correct": 2,
+  "options": [
+   {
+    "text": "Ground Truth is for text; A2I is for images",
+    "why": "Neither is limited by media type this way."
+   },
+   {
+    "text": "They are the same service under two names",
+    "why": "Your notes warn not to confuse them."
+   },
+   {
+    "text": "Ground Truth is primarily for human labeling of training data; A2I is primarily for human oversight of trained model predictions",
+    "why": "Correct. They can, however, use the same human workforce for their separate jobs."
+   },
+   {
+    "text": "Ground Truth is for oversight; A2I is for labeling",
+    "why": "This is reversed."
+   }
+  ],
+  "takeaway": "Ground Truth = humans create the training labels. A2I = humans review predictions."
+ },
+ {
+  "id": 58,
+  "topic": "Data labeling & Data Wrangler",
+  "topic_slug": "data-labeling-and-data-wrangler",
+  "question": "How does Ground Truth reduce the amount of manual labeling work?",
+  "correct": 0,
+  "options": [
+   {
+    "text": "It trains its own model as humans label, and only sends data the model isn't sure about to humans (reducing manual work by about 70%)",
+    "why": "Correct. Your notes tie this to RLHF-style learning from human feedback."
+   },
+   {
+    "text": "It skips labeling for any image over a size threshold",
+    "why": "No such rule."
+   },
+   {
+    "text": "It sends everything to Mechanical Turk at once",
+    "why": "It tries to avoid that."
+   },
+   {
+    "text": "It replaces labelers with Rekognition entirely",
+    "why": "It doesn't replace humans for uncertain items."
+   }
+  ],
+  "takeaway": "Ground Truth Plus is the turnkey option: you fill out a form, AWS experts contact you, discuss pricing and manage the labelers and the whole workflow."
+ },
+ {
+  "id": 59,
+  "topic": "Data labeling & Data Wrangler",
+  "topic_slug": "data-labeling-and-data-wrangler",
+  "question": "Which describes SageMaker Data Wrangler?",
+  "correct": 3,
+  "options": [
+   {
+    "text": "A hosting service for real-time endpoints",
+    "why": "That's SageMaker Hosting."
+   },
+   {
+    "text": "A human labeling workforce",
+    "why": "That's Ground Truth."
+   },
+   {
+    "text": "A tool to schedule Glue jobs",
+    "why": "Not its purpose."
+   },
+   {
+    "text": "A visual UI to import, preview, visualize and transform data, with feature engineering (balance data, impute missing data, handle outliers, PCA), a 'Quick Model' option, and exportable data flows",
+    "why": "Correct."
+   }
+  ],
+  "takeaway": "Data Wrangler also covers transforming images. Use it for the data-prep part of the ML workflow before training."
+ },
+ {
+  "id": 60,
+  "topic": "Deep learning & NNs",
+  "topic_slug": "deep-learning-and-nns",
+  "question": "What is Keras's relationship to TensorFlow?",
+  "correct": 1,
+  "options": [
+   {
+    "text": "Keras is a competing framework developed by Facebook",
+    "why": "That describes PyTorch."
+   },
+   {
+    "text": "Keras is a high-level NN API integrated into TensorFlow, with an easy interface while TF handles the computations",
+    "why": "Correct. TensorFlow is open source and developed by Google."
+   },
+   {
+    "text": "Keras is AWS's own framework",
+    "why": "That describes MXNet, which is backed by AWS and Apache."
+   },
+   {
+    "text": "Keras is a data labeling tool",
+    "why": "It's a DL API."
+   }
+  ],
+  "takeaway": "DL frameworks in your notes: TensorFlow (Google), PyTorch (Facebook, Pythonic and NumPy-like) and MXNet (backed by AWS and Apache MXNet)."
+ },
+ {
+  "id": 61,
+  "topic": "Deep learning & NNs",
+  "topic_slug": "deep-learning-and-nns",
+  "question": "Which statement about feed-forward networks and the multilayer perceptron (MLP) is correct?",
+  "correct": 2,
+  "options": [
+   {
+    "text": "FFNNs have loops; MLPs have none",
+    "why": "FFNNs flow only forward."
+   },
+   {
+    "text": "An MLP is a recurrent network",
+    "why": "MLPs are feed-forward."
+   },
+   {
+    "text": "An FFNN has uni-directional flow; an MLP is a modern, fully connected, multi-layer FFNN that can distinguish data that is not linearly separable",
+    "why": "Correct."
+   },
+   {
+    "text": "An MLP uses convolutional layers to detect spatial patterns",
+    "why": "That describes CNNs."
+   }
+  ],
+  "takeaway": "Fully connected means every neuron in one layer connects to every neuron in the next."
+ },
+ {
+  "id": 62,
+  "topic": "Deep learning & NNs",
+  "topic_slug": "deep-learning-and-nns",
+  "question": "You need a model to answer 'Is there a STOP sign in this image?'. Which NN type fits best?",
+  "correct": 0,
+  "options": [
+   {
+    "text": "Convolutional NN (CNN)",
+    "why": "Correct. CNNs use convolutional layers to detect patterns and excel at spatial data, usually images."
+   },
+   {
+    "text": "Recurrent NN (RNN)",
+    "why": "RNNs are for sequences and time series."
+   },
+   {
+    "text": "A plain FFNN with one layer",
+    "why": "It lacks spatial pattern detection."
+   },
+   {
+    "text": "K-Means",
+    "why": "That's an unsupervised clustering algorithm, not a NN."
+   }
+  ],
+  "takeaway": "CNN = images and spatial data. RNN = sequences. FFNN = vanilla forward-only network."
+ },
+ {
+  "id": 63,
+  "topic": "Deep learning & NNs",
+  "topic_slug": "deep-learning-and-nns",
+  "question": "You want to predict stock prices or understand words in a sentence. Which NN type is suited, and why?",
+  "correct": 3,
+  "options": [
+   {
+    "text": "CNN, because it excels at images",
+    "why": "That's CNNs' strength, not sequences."
+   },
+   {
+    "text": "FFNN, because flow is uni-directional",
+    "why": "Uni-directional flow can't carry sequence context."
+   },
+   {
+    "text": "MLP, because it is fully connected",
+    "why": "MLP is feed-forward."
+   },
+   {
+    "text": "RNN, because its flow can loop backwards, which suits sequences and time series (translation too)",
+    "why": "Correct."
+   }
+  ],
+  "takeaway": "RNN use cases in your notes: stock prices, understanding words in a sentence, translation."
+ },
+ {
+  "id": 64,
+  "topic": "Amazon Comprehend",
+  "topic_slug": "amazon-comprehend",
+  "question": "Which of these is NOT something Amazon Comprehend does out of the box?",
+  "correct": 2,
+  "options": [
+   {
+    "text": "Detect the language of text",
+    "why": "It does this."
+   },
+   {
+    "text": "Detect personally identifiable information (PII)",
+    "why": "It does this."
+   },
+   {
+    "text": "Label bounding boxes on images with human workers",
+    "why": "Correct. That's a Ground Truth task. Comprehend is an NLP service for text."
+   },
+   {
+    "text": "Analyze sentiment and organize documents by topic",
+    "why": "It does these."
+   }
+  ],
+  "takeaway": "Comprehend also extracts entities (places, people, brands, events) and analyzes syntax with tokenization and parts of speech."
+ },
+ {
+  "id": 65,
+  "topic": "Amazon Comprehend",
+  "topic_slug": "amazon-comprehend",
+  "question": "You want to classify documents into your own business categories and recognize entities specific to your domain. What do you use?",
+  "correct": 1,
+  "options": [
+   {
+    "text": "The default pre-trained models only",
+    "why": "They won't know your custom categories or entities."
+   },
+   {
+    "text": "Comprehend custom models (document classification, custom entity recognition) trained on your own data",
+    "why": "Correct."
+   },
+   {
+    "text": "Amazon Rekognition",
+    "why": "Rekognition is for images and video."
+   },
+   {
+    "text": "Data Wrangler Quick Model",
+    "why": "Not for custom NLP classification."
+   }
+  ],
+  "takeaway": "Comprehend supports both pre-trained and custom models."
+ },
+ {
+  "id": 66,
+  "topic": "Amazon Comprehend",
+  "topic_slug": "amazon-comprehend",
+  "question": "How do you run Comprehend analyses for small vs. large workloads?",
+  "correct": 0,
+  "options": [
+   {
+    "text": "Real-time analysis for small workloads; async jobs for larger workloads",
+    "why": "Correct."
+   },
+   {
+    "text": "Async only; real-time isn't supported",
+    "why": "Real-time analysis is supported for small workloads."
+   },
+   {
+    "text": "Real-time only; async isn't supported",
+    "why": "Async jobs are supported for larger workloads."
+   },
+   {
+    "text": "Both require Spark on EMR",
+    "why": "Comprehend is a managed service."
+   }
+  ],
+  "takeaway": "The input is a document, which you can think of as text."
+ },
+ {
+  "id": 67,
+  "topic": "Amazon Comprehend",
+  "topic_slug": "amazon-comprehend",
+  "question": "A company wants to analyze customer emails to find what leads to positive or negative experiences. Which service fits?",
+  "correct": 2,
+  "options": [
+   {
+    "text": "Amazon QuickSight Q",
+    "why": "Q answers BI questions on data, not text analysis."
+   },
+   {
+    "text": "SageMaker Ground Truth",
+    "why": "It labels training data with humans."
+   },
+   {
+    "text": "Amazon Comprehend (sentiment analysis, plus topic organization)",
+    "why": "Correct. This is one of the example use cases in your notes."
+   },
+   {
+    "text": "AWS Glue crawler",
+    "why": "It catalogs schemas."
+   }
+  ],
+  "takeaway": "Another example use case: group articles by topics that Comprehend uncovers."
+ },
+ {
+  "id": 68,
+  "topic": "AWS AI services",
+  "topic_slug": "aws-ai-services",
+  "question": "How does Amazon Translate aim to preserve meaning rather than translate word for word?",
+  "correct": 1,
+  "options": [
+   {
+    "text": "It looks up each word in a fixed dictionary",
+    "why": "Translate is powered by neural networks, not word lookups. Custom terminologies only supplement it."
+   },
+   {
+    "text": "An encoder reads the source and outputs a semantic representation, a decoder writes the target language, and attention mechanisms focus on the words most relevant for context",
+    "why": "Correct."
+   },
+   {
+    "text": "It converts text to speech and back",
+    "why": "That's Polly and Transcribe territory."
+   },
+   {
+    "text": "It sends each sentence to human translators",
+    "why": "No human step."
+   }
+  ],
+  "takeaway": "Translate can also auto-detect the source language, and it integrates with services like Comprehend, Transcribe and Polly. It can translate data stored in S3, RDS and DynamoDB."
+ },
+ {
+  "id": 69,
+  "topic": "AWS AI services",
+  "topic_slug": "aws-ai-services",
+  "question": "You need Translate to always render certain brand and product terms your own way. What feature do you use?",
+  "correct": 3,
+  "options": [
+   {
+    "text": "Parallel data only",
+    "why": "Parallel data lets one phrase have several translations depending on context (e.g. formal vs informal 'how are you?')."
+   },
+   {
+    "text": "Auto language detection",
+    "why": "That detects the source language only."
+   },
+   {
+    "text": "Attention mechanisms",
+    "why": "These are internal to the model."
+   },
+   {
+    "text": "Terminologies (custom dictionaries with your own translations for specific terms)",
+    "why": "Correct."
+   }
+  ],
+  "takeaway": "Parallel data example: 'how are you?' can be 'Comment ça va?' or 'Comment allez-vous?' depending on the situation."
+ },
+ {
+  "id": 70,
+  "topic": "AWS AI services",
+  "topic_slug": "aws-ai-services",
+  "question": "Which statement about Amazon Textract is correct?",
+  "correct": 0,
+  "options": [
+   {
+    "text": "It extracts text (printed or handwritten), relationships (e.g. a tax tied to a price) and metadata (where on the page) from JPEG, PNG, PDF or TIFF; sync for most documents, async for large ones",
+    "why": "Correct."
+   },
+   {
+    "text": "It only works on typed text and fails on handwriting",
+    "why": "It supports computer-generated and handwritten text."
+   },
+   {
+    "text": "It analyzes sentiment of the extracted text",
+    "why": "That's Comprehend."
+   },
+   {
+    "text": "It is always asynchronous",
+    "why": "Most documents run synchronously (real-time)."
+   }
+  ],
+  "takeaway": "Use cases: document analysis (names, addresses, birth dates), receipt analysis (prices, vendor, line items, dates) and identity documents. Pricing is pay-per-use."
+ },
+ {
+  "id": 71,
+  "topic": "AWS AI services",
+  "topic_slug": "aws-ai-services",
+  "question": "You must pull vendor names, line items and prices out of scanned receipts and invoices. Which service fits?",
+  "correct": 2,
+  "options": [
+   {
+    "text": "Amazon Rekognition",
+    "why": "Rekognition identifies objects, people, text and activities in images/video, but isn't built for structured document analysis."
+   },
+   {
+    "text": "Amazon Kendra",
+    "why": "Kendra is an intelligent search service over documents."
+   },
+   {
+    "text": "Amazon Textract",
+    "why": "Correct. It detects and extracts text with structure and relationships from receipts, invoices, medical records and ID documents."
+   },
+   {
+    "text": "Amazon Lex",
+    "why": "Lex builds chatbots."
+   }
+  ],
+  "takeaway": "A typical follow-up: send the extracted text to Comprehend for NLP analysis."
+ },
+ {
+  "id": 72,
+  "topic": "AWS AI services",
+  "topic_slug": "aws-ai-services",
+  "question": "Which is a use case of Rekognition Custom Labels?",
+  "correct": 1,
+  "options": [
+   {
+    "text": "Translating subtitles",
+    "why": "That's Translate."
+   },
+   {
+    "text": "Finding your logo in social media posts or identifying your products on store shelves, after labeling a few hundred images or fewer",
+    "why": "Correct. Rekognition builds a custom model from your labeled images and categorizes new images your way."
+   },
+   {
+    "text": "Converting text to speech",
+    "why": "That's Polly."
+   },
+   {
+    "text": "Transcribing calls",
+    "why": "That's Transcribe."
+   }
+  ],
+  "takeaway": "Rekognition's general features: face detection/analysis/comparison, pathing (movement of people/objects), content moderation, and analysis of live video via Kinesis Video Streams. It's event-driven (e.g. on S3 upload) and billed per image or per video minute."
+ },
+ {
+  "id": 73,
+  "topic": "AWS AI services",
+  "topic_slug": "aws-ai-services",
+  "question": "Which workload is the best fit for Amazon Kendra?",
+  "correct": 3,
+  "options": [
+   {
+    "text": "Classifying images of products",
+    "why": "That's Rekognition."
+   },
+   {
+    "text": "Recommending products to users",
+    "why": "That's Personalize."
+   },
+   {
+    "text": "Detecting fraudulent payments",
+    "why": "That's Fraud Detector."
+   },
+   {
+    "text": "Natural-language search over your documents that extracts answers, mimicking a human expert (factoid, descriptive and keyword questions)",
+    "why": "Correct."
+   }
+  ],
+  "takeaway": "Kendra uses a (knowledge) index powered by ML. Data sources (S3, RDS, WorkDocs, FSx, Confluence, Google Workspace, OneDrive, Salesforce, a web crawler...) are synchronized to the index on a schedule."
+ },
+ {
+  "id": 74,
+  "topic": "AWS AI services",
+  "topic_slug": "aws-ai-services",
+  "question": "Which Kendra features keep search results relevant over time?",
+  "correct": 0,
+  "options": [
+   {
+    "text": "Incremental learning from user interactions/feedback, plus manual tuning of result importance and freshness",
+    "why": "Correct."
+   },
+   {
+    "text": "Automatic deletion of old documents",
+    "why": "Not described."
+   },
+   {
+    "text": "Mandatory retraining on SageMaker",
+    "why": "Kendra is managed."
+   },
+   {
+    "text": "Only static keyword matching",
+    "why": "Kendra uses ML and intent detection (e.g. which meaning of 'address')."
+   }
+  ],
+  "takeaway": "Kendra documents can be structured (FAQs) or unstructured (HTML, PDFs, text)."
+ },
+ {
+  "id": 75,
+  "topic": "AWS AI services",
+  "topic_slug": "aws-ai-services",
+  "question": "In Amazon Lex, what is a 'slot'?",
+  "correct": 2,
+  "options": [
+   {
+    "text": "The action the user wants to perform",
+    "why": "That's an intent."
+   },
+   {
+    "text": "A phrase used to express an intent",
+    "why": "That's an utterance."
+   },
+   {
+    "text": "A key parameter inside an utterance (e.g. burger size or meat type)",
+    "why": "Correct."
+   },
+   {
+    "text": "The Lambda function that fulfills the intent",
+    "why": "Intents are often fulfilled with Lambda, but that's not a slot."
+   }
+  ],
+  "takeaway": "Lex provides ASR (speech recognition) and NLU (discovering intent), and powers Alexa. Use cases: chatbots, voice assistants, Q&A bots, enterprise info bots."
+ },
+ {
+  "id": 76,
+  "topic": "AWS AI services",
+  "topic_slug": "aws-ai-services",
+  "question": "Users say 'Can I order a hamburger?', 'I want a burger' and 'Cheeseburger, please'. In Lex terms, what are these phrases?",
+  "correct": 1,
+  "options": [
+   {
+    "text": "Slots",
+    "why": "Slots are parameters inside an utterance."
+   },
+   {
+    "text": "Utterances that train the OrderHamburger intent",
+    "why": "Correct. Intents are trained with sample utterances, and often fulfilled via Lambda."
+   },
+   {
+    "text": "Intents",
+    "why": "The intent is the action (ordering a hamburger)."
+   },
+   {
+    "text": "Fulfillment hooks",
+    "why": "Not an NLU concept here."
+   }
+  ],
+  "takeaway": "Chains of intents ('order a hamburger' then 'extra cheese' then 'without onion') are something computers have traditionally been bad at."
+ },
+ {
+  "id": 77,
+  "topic": "AWS AI services",
+  "topic_slug": "aws-ai-services",
+  "question": "Which statement about Amazon Polly is correct?",
+  "correct": 0,
+  "options": [
+   {
+    "text": "It's text-to-speech and does NOT translate; Standard TTS is concatenative (phonemes), while Neural TTS goes phonemes to spectrograms to vocoder to audio",
+    "why": "Correct. Neural is more natural but computationally heavier. Newer engines include long-form and generative."
+   },
+   {
+    "text": "It converts speech to text",
+    "why": "That's Transcribe."
+   },
+   {
+    "text": "It translates text while speaking",
+    "why": "No translation happens in the conversion. Use Translate first if needed."
+   },
+   {
+    "text": "It only supports MP3",
+    "why": "It supports MP3, PCM, Ogg Vorbis and more."
+   }
+  ],
+  "takeaway": "A phoneme is the smallest unit of sound in a language."
+ },
+ {
+  "id": 78,
+  "topic": "AWS AI services",
+  "topic_slug": "aws-ai-services",
+  "question": "Which Polly feature lets you control emphasis, whispering or a 'newscaster' style, and which defines how to read 'AWS' as 'Amazon Web Services'?",
+  "correct": 3,
+  "options": [
+   {
+    "text": "Speech marks; SSML",
+    "why": "Reversed. Speech marks encode where sentences/words start and end."
+   },
+   {
+    "text": "Lexicons; speech marks",
+    "why": "Lexicons do the pronunciation/expansion job, but SSML does the style control."
+   },
+   {
+    "text": "Neural engine; standard engine",
+    "why": "These are voice engines."
+   },
+   {
+    "text": "SSML (Speech Synthesis Markup Language); lexicons",
+    "why": "Correct. Speech marks help with lip-syncing and word highlighting."
+   }
+  ],
+  "takeaway": "A WordPress plugin that reads articles aloud is an example integration."
+ },
+ {
+  "id": 79,
+  "topic": "AWS AI services",
+  "topic_slug": "aws-ai-services",
+  "question": "Transcribe mis-hears your domain-specific terms. Which two options improve accuracy?",
+  "correct": 1,
+  "options": [
+   {
+    "text": "Lexicons and SSML",
+    "why": "Those are Polly features."
+   },
+   {
+    "text": "Custom vocabularies (words) and custom language models (context, learned from domain-specific text)",
+    "why": "Correct."
+   },
+   {
+    "text": "Slots and utterances",
+    "why": "Those are Lex concepts."
+   },
+   {
+    "text": "Terminologies and parallel data",
+    "why": "Those are Translate features."
+   }
+  ],
+  "takeaway": "Transcribe is an ASR (deep learning) service: audio in, text out, billed per second. It offers language identification, PII redaction, audience-appropriate language and speaker identification."
+ },
+ {
+  "id": 80,
+  "topic": "AWS AI services",
+  "topic_slug": "aws-ai-services",
+  "question": "Which feature detects and scores voice-based toxicity using both tone/pitch and text cues?",
+  "correct": 2,
+  "options": [
+   {
+    "text": "Rekognition content moderation",
+    "why": "That's for images/video."
+   },
+   {
+    "text": "Comprehend PII detection",
+    "why": "That detects personal information in text."
+   },
+   {
+    "text": "Transcribe Toxicity Detection",
+    "why": "Correct. Categories include sexual harassment, hate speech, threat, abuse, profanity, insult and graphic."
+   },
+   {
+    "text": "Polly speech marks",
+    "why": "Unrelated."
+   }
+  ],
+  "takeaway": "Transcribe Call Analytics gives phone call characteristics, summarization, categories and sentiment. Transcribe Medical is specialized for medical speech."
+ },
+ {
+  "id": 81,
+  "topic": "AWS AI services",
+  "topic_slug": "aws-ai-services",
+  "question": "You want to show each user a re-ranked list of items based on their preferences. Which Personalize recipe type fits?",
+  "correct": 0,
+  "options": [
+   {
+    "text": "PERSONALIZED_RANKING (e.g. Personalized-Ranking-v2)",
+    "why": "Correct."
+   },
+   {
+    "text": "POPULAR_ITEMS (Trending-Now)",
+    "why": "That recommends trending or popular items, not per-user ranking."
+   },
+   {
+    "text": "RELATED_ITEMS (Similar-Items)",
+    "why": "That recommends similar items."
+   },
+   {
+    "text": "USER_SEGMENTATION (Item-Affinity)",
+    "why": "That gets user segments."
+   }
+  ],
+  "takeaway": "Other recipes: USER_PERSONALIZATION (recommend items for users), PERSONALIZED_ACTIONS (Next-Best-Action). Personalize powers Amazon.com recommendations. Customers provide the training configuration on top of a recipe."
+ },
+ {
+  "id": 82,
+  "topic": "AWS AI services",
+  "topic_slug": "aws-ai-services",
+  "question": "A new customer account is being created, and you have little history on this customer. Which Fraud Detector model type fits?",
+  "correct": 1,
+  "options": [
+   {
+    "text": "Transaction Fraud",
+    "why": "That uses transactional history."
+   },
+   {
+    "text": "Online Fraud (little historical data)",
+    "why": "Correct. It checks whether anything is suspicious about this particular sign-up."
+   },
+   {
+    "text": "Account Takeover",
+    "why": "That targets phishing or social attacks on existing accounts."
+   },
+   {
+    "text": "Lookout for Metrics",
+    "why": "That's anomaly detection on metrics."
+   }
+  ],
+  "takeaway": "Fraud Detector scores events, and rules/decision logic let you react to a score based on business risk. It ingests data from S3, and it automatically trains, tunes, validates and deploys the model, learning continuously."
+ },
+ {
+  "id": 83,
+  "topic": "AWS AI services",
+  "topic_slug": "aws-ai-services",
+  "question": "Which Amazon Lookout variant integrates with sensors for predictive maintenance (e.g. an escalator that may need servicing soon)?",
+  "correct": 3,
+  "options": [
+   {
+    "text": "Lookout for Metrics",
+    "why": "That monitors business metrics for unusual variances."
+   },
+   {
+    "text": "Lookout for Vision",
+    "why": "That automates quality inspection with computer vision."
+   },
+   {
+    "text": "Lookout for Text",
+    "why": "Not a variant in your notes."
+   },
+   {
+    "text": "Lookout for Equipment",
+    "why": "Correct."
+   }
+  ],
+  "takeaway": "Lookout is an anomaly detection service. Detectors monitor datasets, with dimensions (features that influence the measure) and a measure (what you're optimizing)."
+ },
+ {
+  "id": 84,
+  "topic": "AWS AI services",
+  "topic_slug": "aws-ai-services",
+  "question": "Which service provides human oversight of ML predictions in production, using your employees, AWS contractors or Mechanical Turk?",
+  "correct": 2,
+  "options": [
+   {
+    "text": "SageMaker Ground Truth",
+    "why": "Ground Truth is for creating labeled training data."
+   },
+   {
+    "text": "Amazon Forecast",
+    "why": "A forecasting service."
+   },
+   {
+    "text": "Amazon Augmented AI (A2I)",
+    "why": "Correct. The model can be built on AWS (SageMaker, Rekognition...) or elsewhere."
+   },
+   {
+    "text": "Amazon Mechanical Turk alone",
+    "why": "MTurk is a crowdsourcing marketplace for simple human tasks and can be a workforce for A2I, but A2I is the oversight service."
+   }
+  ],
+  "takeaway": "MTurk example: distribute 10 million unlabeled images and pay a reward per image. It integrates with A2I and Ground Truth."
+ },
+ {
+  "id": 85,
+  "topic": "Generative AI & Bedrock",
+  "topic_slug": "generative-ai-and-bedrock",
+  "question": "What is the difference between tokens and embeddings?",
+  "correct": 0,
+  "options": [
+   {
+    "text": "Tokens are numerical representations of words or parts of words; embeddings are vectors that encode the meaning of a token",
+    "why": "Correct. A word can be one or more tokens, and punctuation is usually tokenized too."
+   },
+   {
+    "text": "Tokens are vectors encoding meaning; embeddings are integer IDs",
+    "why": "Reversed."
+   },
+   {
+    "text": "They are the same thing",
+    "why": "They differ."
+   },
+   {
+    "text": "Tokens are model weights; embeddings are prompts",
+    "why": "Neither is true."
+   }
+  ],
+  "takeaway": "In the lab, 'I read a good novel' is tokenized into a sequence of integers using a BERT tokenizer."
+ },
+ {
+  "id": 86,
+  "topic": "Generative AI & Bedrock",
+  "topic_slug": "generative-ai-and-bedrock",
+  "question": "What do RNNs and LSTMs propagate through the sequence?",
+  "correct": 1,
+  "options": [
+   {
+    "text": "The training dataset",
+    "why": "Not propagated."
+   },
+   {
+    "text": "The hidden state (the previous output), via a feedback loop",
+    "why": "Correct. This makes them useful for sequential data such as time series or language, and it's the precursor to the transformer architecture."
+   },
+   {
+    "text": "Only the attention weights",
+    "why": "That's transformers."
+   },
+   {
+    "text": "The Docker image",
+    "why": "Unrelated."
+   }
+  ],
+  "takeaway": "Evolution: RNNs/LSTMs came first, then transformers."
+ },
+ {
+  "id": 87,
+  "topic": "Generative AI & Bedrock",
+  "topic_slug": "generative-ai-and-bedrock",
+  "question": "In the transformer lab, what kind of function does the positional encoding use, and what does multi-headed self-attention show?",
+  "correct": 2,
+  "options": [
+   {
+    "text": "A step function; nothing interesting",
+    "why": "Not what the lab shows."
+   },
+   {
+    "text": "A polynomial; only the first word matters",
+    "why": "Not what the lab shows."
+   },
+   {
+    "text": "An interleaved sinusoidal function; words relate strongly to relevant others (e.g. 'novel' connects to 'read' in 'I read a good novel')",
+    "why": "Correct."
+   },
+   {
+    "text": "A hash function; attention is uniform",
+    "why": "Attention weights differ by relevance."
+   }
+  ],
+  "takeaway": "In 'Attention is a novel idea', 'novel' is tied strongly to 'idea'."
+ },
+ {
+  "id": 88,
+  "topic": "Generative AI & Bedrock",
+  "topic_slug": "generative-ai-and-bedrock",
+  "question": "What is a Foundation Model (FM) per your notes?",
+  "correct": 3,
+  "options": [
+   {
+    "text": "A small rules-based classifier",
+    "why": "Not it."
+   },
+   {
+    "text": "A database of embeddings",
+    "why": "Not it."
+   },
+   {
+    "text": "A labeled dataset",
+    "why": "Not it."
+   },
+   {
+    "text": "A giant, pre-trained transformer model that can be fine-tuned",
+    "why": "Correct."
+   }
+  ],
+  "takeaway": "SageMaker JumpStart lets you quickly open a notebook with a given model loaded. Many HuggingFace text-generation models (Falcon, Flan, BloomZ, GPT-J) are available."
+ },
+ {
+  "id": 89,
+  "topic": "Generative AI & Bedrock",
+  "topic_slug": "generative-ai-and-bedrock",
+  "question": "Which Amazon FM is described as multi-purpose (summarization, text generation, Q&A and embeddings for recommendations/search)?",
+  "correct": 1,
+  "options": [
+   {
+    "text": "Jurassic-2",
+    "why": "Multilingual text generation (Spanish, French, German, Portuguese, Italian, Dutch)."
+   },
+   {
+    "text": "Amazon Titan",
+    "why": "Correct."
+   },
+   {
+    "text": "Stable Diffusion",
+    "why": "Image, art, logo and design generation."
+   },
+   {
+    "text": "Claude",
+    "why": "LLMs for conversations, Q&A and workflow automation."
+   }
+  ],
+  "takeaway": "Others in your list: LLaMa (Meta, LLM), Segment Anything (Meta, image). Later GPT-n versions and DALL-E are not in AWS."
+ },
+ {
+  "id": 90,
+  "topic": "Generative AI & Bedrock",
+  "topic_slug": "generative-ai-and-bedrock",
+  "question": "How is Amazon Bedrock described relative to SageMaker?",
+  "correct": 0,
+  "options": [
+   {
+    "text": "A serverless marketplace of GenAI FMs accessed via APIs, higher level than SageMaker, with support for RAG, agents, evaluations, pre-built/custom/imported models",
+    "why": "Correct. Third-party models are billed via AWS."
+   },
+   {
+    "text": "A lower-level service where you manage the training instances",
+    "why": "That's closer to SageMaker."
+   },
+   {
+    "text": "A data labeling workforce",
+    "why": "That's Ground Truth."
+   },
+   {
+    "text": "A search index service",
+    "why": "That's Kendra."
+   }
+  ],
+  "takeaway": "You can invoke chat, text or image models and use playground environments."
+ },
+ {
+  "id": 91,
+  "topic": "Generative AI & Bedrock",
+  "topic_slug": "generative-ai-and-bedrock",
+  "question": "You want to run inference (execute prompts, generate embeddings) against Bedrock models. Which endpoint do you use?",
+  "correct": 2,
+  "options": [
+   {
+    "text": "bedrock",
+    "why": "That manages, trains and deploys models."
+   },
+   {
+    "text": "bedrock-agent",
+    "why": "That manages agents and knowledge bases."
+   },
+   {
+    "text": "bedrock-runtime (Converse, ConverseStream, InvokeModel, InvokeModelWithResponseStream)",
+    "why": "Correct."
+   },
+   {
+    "text": "bedrock-agent-runtime",
+    "why": "That performs inference against agents and knowledge bases."
+   }
+  ],
+  "takeaway": "bedrock-agent-runtime offers InvokeAgent, Retrieve and RetrieveAndGenerate."
+ },
+ {
+  "id": 92,
+  "topic": "Generative AI & Bedrock",
+  "topic_slug": "generative-ai-and-bedrock",
+  "question": "What's the difference between Converse and InvokeModel, and what does 'Stream' mean?",
+  "correct": 1,
+  "options": [
+   {
+    "text": "Converse is for images; InvokeModel is for text; Stream means video",
+    "why": "Not true."
+   },
+   {
+    "text": "Converse = chat; Invoke = a single invocation that terminates; Stream = the stream of tokens the LLM generates",
+    "why": "Correct."
+   },
+   {
+    "text": "They're identical; Stream encrypts traffic",
+    "why": "Not true."
+   },
+   {
+    "text": "Converse trains; InvokeModel deploys",
+    "why": "Not true."
+   }
+  ],
+  "takeaway": "Streaming is why chat-style answers appear gradually."
+ },
+ {
+  "id": 93,
+  "topic": "Generative AI & Bedrock",
+  "topic_slug": "generative-ai-and-bedrock",
+  "question": "Which of these Bedrock prerequisites does your note list?",
+  "correct": 3,
+  "options": [
+   {
+    "text": "Use the root user for best results",
+    "why": "Root is not recommended. Use an IAM user."
+   },
+   {
+    "text": "No permissions are needed",
+    "why": "The user needs Bedrock permissions."
+   },
+   {
+    "text": "All FMs are free",
+    "why": "Third-party models are billed at the vendor's rates via AWS."
+   },
+   {
+    "text": "Use an IAM user (not root) with Bedrock permissions (e.g. AmazonBedrockFullAccess), and request access to an FM before using it",
+    "why": "Correct. Third-party models may require extra information."
+   }
+  ],
+  "takeaway": "Check pricing at aws.amazon.com/bedrock/pricing."
+ },
+ {
+  "id": 94,
+  "topic": "DevOps & MLOps services",
+  "topic_slug": "devops-and-mlops-services",
+  "question": "What is the difference between ECS EC2 mode and Fargate mode?",
+  "correct": 0,
+  "options": [
+   {
+    "text": "EC2 mode uses EC2 instances as container hosts that you must manage; Fargate is serverless and AWS manages the hosts",
+    "why": "Correct."
+   },
+   {
+    "text": "Fargate needs you to manage capacity; EC2 mode doesn't",
+    "why": "Reversed."
+   },
+   {
+    "text": "EC2 mode has no scheduler; Fargate has",
+    "why": "Scheduling, orchestration, cluster management and placement engine exist in both modes."
+   },
+   {
+    "text": "They are the same",
+    "why": "The modes radically change how ECS works."
+   }
+  ],
+  "takeaway": "ECS is to containers what EC2 is to VMs. Images come from a registry such as Docker Hub or ECR."
+ },
+ {
+  "id": 95,
+  "topic": "DevOps & MLOps services",
+  "topic_slug": "devops-and-mlops-services",
+  "question": "What belongs in an ECS container definition vs. a task definition?",
+  "correct": 2,
+  "options": [
+   {
+    "text": "Container definition = task role; task definition = image URI",
+    "why": "Mixed up."
+   },
+   {
+    "text": "Both contain only the image URI",
+    "why": "Task definitions include more."
+   },
+   {
+    "text": "Container definition = image URI and ports for one container; task definition = all container definitions plus CPU/memory, networking mode, EC2/Fargate compatibility and the task role",
+    "why": "Correct."
+   },
+   {
+    "text": "Container definition = IAM user; task definition = VPC",
+    "why": "Not accurate."
+   }
+  ],
+  "takeaway": "A task is a single self-contained application, with one or many containers. Task roles give containers temporary credentials, which is best practice."
+ },
+ {
+  "id": 96,
+  "topic": "DevOps & MLOps services",
+  "topic_slug": "devops-and-mlops-services",
+  "question": "In ECS EC2 mode, what's the difference between the EC2 instance profile and the ECS task role?",
+  "correct": 1,
+  "options": [
+   {
+    "text": "They're the same role",
+    "why": "They're different."
+   },
+   {
+    "text": "The instance profile is assumed by the ECS Agent on the instance (call ECS APIs, send logs, pull from ECR, read Secrets Manager/SSM); the task role is assumed by the task and grants what the task needs",
+    "why": "Correct."
+   },
+   {
+    "text": "The task role is for Fargate only",
+    "why": "Task roles apply to tasks in both modes."
+   },
+   {
+    "text": "The instance profile is assumed by tasks",
+    "why": "That's the task role."
+   }
+  ],
+  "takeaway": "The instance profile only applies to ECS-EC2 mode."
+ },
+ {
+  "id": 97,
+  "topic": "DevOps & MLOps services",
+  "topic_slug": "devops-and-mlops-services",
+  "question": "Which load balancer guidance does your note give for ECS?",
+  "correct": 3,
+  "options": [
+   {
+    "text": "CLB for most cases",
+    "why": "CLB is not recommended (no advanced features, no Fargate support)."
+   },
+   {
+    "text": "NLB for most cases",
+    "why": "NLB is for high throughput/performance or pairing with PrivateLink."
+   },
+   {
+    "text": "No load balancers are supported",
+    "why": "They are supported."
+   },
+   {
+    "text": "ALB for most cases; NLB for high throughput or PrivateLink; CLB not recommended",
+    "why": "Correct."
+   }
+  ],
+  "takeaway": "EFS provides persistent multi-AZ shared storage for tasks on both EC2 and Fargate. Fargate plus EFS is the 'ultimate serverless combo'. CloudWatch Container Insights covers ECS and EKS."
+ },
+ {
+  "id": 98,
+  "topic": "DevOps & MLOps services",
+  "topic_slug": "devops-and-mlops-services",
+  "question": "Which describes the EKS cluster and its node options?",
+  "correct": 0,
+  "options": [
+   {
+    "text": "AWS manages the control plane (multi-AZ, with etcd distributed); nodes can be self-managed EC2, managed node groups, or Fargate pods",
+    "why": "Correct."
+   },
+   {
+    "text": "You manage the control plane; AWS manages nodes",
+    "why": "Reversed."
+   },
+   {
+    "text": "EKS only runs on Fargate",
+    "why": "There are three node options."
+   },
+   {
+    "text": "EKS is a proprietary AWS orchestrator unrelated to Kubernetes",
+    "why": "It's AWS's managed Kubernetes."
+   }
+  ],
+  "takeaway": "Check node type capabilities per region (Windows, GPU, Inferentia, Bottlerocket, Outposts, Local Zones). EKS Anywhere creates clusters on-premises or anywhere, and EKS Distro is the OSS release."
+ },
+ {
+  "id": 99,
+  "topic": "DevOps & MLOps services",
+  "topic_slug": "devops-and-mlops-services",
+  "question": "In CloudFormation, what is a stack?",
+  "correct": 2,
+  "options": [
+   {
+    "text": "The YAML or JSON file itself",
+    "why": "That's the template."
+   },
+   {
+    "text": "A folder in S3 with the CF prefix",
+    "why": "Templates are uploaded to S3 by default, but that's not the stack."
+   },
+   {
+    "text": "The living, active representation of a template's logical resources; AWS creates/updates/deletes the matching physical resources",
+    "why": "Correct."
+   },
+   {
+    "text": "A CloudFront distribution",
+    "why": "Don't confuse CFN (CloudFormation) with CF (CloudFront)."
+   }
+  ],
+  "takeaway": "CFN is the official AWS IaC product. Terraform and CDK are popular alternatives that translate to CFN templates."
+ },
+ {
+  "id": 100,
+  "topic": "DevOps & MLOps services",
+  "topic_slug": "devops-and-mlops-services",
+  "question": "Which describes how EventBridge works?",
+  "correct": 1,
+  "options": [
+   {
+    "text": "It runs long-lived workflows for up to a year",
+    "why": "That's Step Functions Standard."
+   },
+   {
+    "text": "Rules (event pattern or schedule) match events on an event bus and route them to one or more targets as JSON",
+    "why": "Correct. The default bus exists in every account, and extra buses handle external or custom events."
+   },
+   {
+    "text": "It stores container images",
+    "why": "That's ECR."
+   },
+   {
+    "text": "It translates text",
+    "why": "That's Translate."
+   }
+  ],
+  "takeaway": "EventBridge is a superset of CloudWatch Events (now redirected). Basic job: 'if X happens, or at Y time, send info to Z'."
+ },
+ {
+  "id": 101,
+  "topic": "DevOps & MLOps services",
+  "topic_slug": "devops-and-mlops-services",
+  "question": "Order processing can take hours or days across many steps, and Lambda's 15-minute limit won't work. What fits?",
+  "correct": 3,
+  "options": [
+   {
+    "text": "Chain several Lambda functions",
+    "why": "Scales poorly, and Lambda is stateless."
+   },
+   {
+    "text": "EventBridge schedule rule",
+    "why": "That triggers things, but doesn't manage long-running workflow state."
+   },
+   {
+    "text": "An EC2 cron job",
+    "why": "Not serverless or workflow-aware."
+   },
+   {
+    "text": "AWS Step Functions (Standard workflow, up to 1 year)",
+    "why": "Correct. Express workflows last at most 5 minutes and suit high-volume, transactional event processing such as data processing or ML workflows."
+   }
+  ],
+  "takeaway": "Step Functions defines workflows as state machines (START to states to END), maintains data between states, and assumes an IAM role while running."
+ },
+ {
+  "id": 102,
+  "topic": "Security & data protection",
+  "topic_slug": "security-and-data-protection",
+  "question": "Which describes the principle of least privilege and how to apply it over a project's lifecycle?",
+  "correct": 1,
+  "options": [
+   {
+    "text": "Give everyone admin access so nothing breaks",
+    "why": "Extra permissions risk misuse."
+   },
+   {
+    "text": "Grant only the permissions needed for a task; you may start broad in early development, then lock permissions down once you know exactly which services and operations the workload needs",
+    "why": "Correct. Example: a policy that only reads CSV files from one specific S3 bucket and nothing else."
+   },
+   {
+    "text": "Never change permissions after the first deployment",
+    "why": "You should tighten them as you learn more."
+   },
+   {
+    "text": "Use the root user for all ML jobs",
+    "why": "Not least privilege."
+   }
+  ],
+  "takeaway": "If you give extra permissions to someone or something, there's a chance they will be misused."
+ },
+ {
+  "id": 103,
+  "topic": "Security & data protection",
+  "topic_slug": "security-and-data-protection",
+  "question": "Which AWS tool helps you generate least-privilege policies based on actual access activity?",
+  "correct": 0,
+  "options": [
+   {
+    "text": "IAM Access Analyzer",
+    "why": "Correct. It's useful for quickly grasping what an optimal policy could look like."
+   },
+   {
+    "text": "Amazon Macie",
+    "why": "Not the tool named in your notes for this."
+   },
+   {
+    "text": "AWS Glue DataBrew",
+    "why": "DataBrew supports data masking."
+   },
+   {
+    "text": "Amazon Athena",
+    "why": "A query service."
+   }
+  ],
+  "takeaway": "Start broad in development, then use activity-based analysis to narrow permissions."
+ },
+ {
+  "id": 104,
+  "topic": "Security & data protection",
+  "topic_slug": "security-and-data-protection",
+  "question": "What is data masking, and where does your note say it's supported?",
+  "correct": 2,
+  "options": [
+   {
+    "text": "Replacing data so the source is untraceable; in Kendra",
+    "why": "That's anonymization, and Kendra isn't listed."
+   },
+   {
+    "text": "Compressing data; in S3 only",
+    "why": "Not masking."
+   },
+   {
+    "text": "Obfuscation of sensitive data (e.g. PII, passwords, showing only the last 4 digits of a credit card); supported in Glue DataBrew and Redshift",
+    "why": "Correct."
+   },
+   {
+    "text": "Deleting data from backups; in Lake Formation",
+    "why": "Not masking."
+   }
+  ],
+  "takeaway": "Example: credit card masking in Redshift."
+ },
+ {
+  "id": 105,
+  "topic": "Security & data protection",
+  "topic_slug": "security-and-data-protection",
+  "question": "Which are anonymization techniques, and what is usually the best option when possible?",
+  "correct": 3,
+  "options": [
+   {
+    "text": "Compression and caching; always keep the data",
+    "why": "Not anonymization techniques."
+   },
+   {
+    "text": "Versioning and replication; encrypt it all",
+    "why": "Not anonymization techniques."
+   },
+   {
+    "text": "Masking only; retain everything for audit",
+    "why": "Masking is a different concept, and keeping sensitive data isn't the best option."
+   },
+   {
+    "text": "Replace with random, shuffling, encryption (deterministic or probabilistic) and hashing; best of all is to delete sensitive data and not import it in the first place",
+    "why": "Correct."
+   }
+  ],
+  "takeaway": "Anonymization = replacing data with other data so the source is untraceable."
+ },
+ {
+  "id": 106,
+  "topic": "ML best practices & Responsible AI",
+  "topic_slug": "ml-best-practices-and-responsible-ai",
+  "question": "Which Responsible AI dimension asks 'Is there bias in the AI model?'",
+  "correct": 0,
+  "options": [
+   {
+    "text": "Fairness",
+    "why": "Correct."
+   },
+   {
+    "text": "Explainability",
+    "why": "Can you explain how the model produced that output?"
+   },
+   {
+    "text": "Safety",
+    "why": "Do people feel safe using the AI app?"
+   },
+   {
+    "text": "Governance",
+    "why": "How do I monitor the model and ensure compliance?"
+   }
+  ],
+  "takeaway": "Your note lists eight dimensions: fairness, explainability, privacy and security, safety, controllability, veracity and robustness, governance, and transparency."
+ },
+ {
+  "id": 107,
+  "topic": "ML best practices & Responsible AI",
+  "topic_slug": "ml-best-practices-and-responsible-ai",
+  "question": "What is the difference between explainability and transparency?",
+  "correct": 1,
+  "options": [
+   {
+    "text": "Explainability = published risks; transparency = explaining outputs",
+    "why": "Reversed."
+   },
+   {
+    "text": "Explainability = can you explain how the model produced an output; transparency = are capabilities, limitations and risks published, and what does the system do",
+    "why": "Correct."
+   },
+   {
+    "text": "They are identical",
+    "why": "They're separate dimensions."
+   },
+   {
+    "text": "Explainability = bias; transparency = privacy",
+    "why": "Not accurate."
+   }
+  ],
+  "takeaway": "Both support trust, but explainability is about individual outputs while transparency is about the system as a whole."
+ },
+ {
+  "id": 108,
+  "topic": "ML best practices & Responsible AI",
+  "topic_slug": "ml-best-practices-and-responsible-ai",
+  "question": "Which dimension covers whether the model tells the truth and how robust it is against hallucinations?",
+  "correct": 2,
+  "options": [
+   {
+    "text": "Controllability",
+    "why": "That's about controlling output with 'dials and knobs'."
+   },
+   {
+    "text": "Privacy and security",
+    "why": "That asks whether the model is trained on sensitive data and could leak it."
+   },
+   {
+    "text": "Veracity and robustness",
+    "why": "Correct."
+   },
+   {
+    "text": "Safety",
+    "why": "That's about users feeling safe."
+   }
+  ],
+  "takeaway": "Controllability = how you can tune/control the output."
+ },
+ {
+  "id": 109,
+  "topic": "ML best practices & Responsible AI",
+  "topic_slug": "ml-best-practices-and-responsible-ai",
+  "question": "Which dimension asks 'How do I monitor the AI model, and how can I ensure it complies with regulations?'",
+  "correct": 3,
+  "options": [
+   {
+    "text": "Fairness",
+    "why": "Bias."
+   },
+   {
+    "text": "Transparency",
+    "why": "Published capabilities and limitations."
+   },
+   {
+    "text": "Safety",
+    "why": "User safety."
+   },
+   {
+    "text": "Governance",
+    "why": "Correct."
+   }
+  ],
+  "takeaway": "Privacy and security asks whether you train on sensitive data and whether it can leak."
+ },
+ {
+  "id": 110,
+  "topic": "ML best practices & Responsible AI",
+  "topic_slug": "ml-best-practices-and-responsible-ai",
+  "question": "Which AWS features does your note list as tools for Responsible AI in Amazon Bedrock?",
+  "correct": 1,
+  "options": [
+   {
+    "text": "Kendra indexes and Glue crawlers",
+    "why": "Not Responsible AI tools in your note."
+   },
+   {
+    "text": "Model evaluation tools and Bedrock Guardrails",
+    "why": "Correct."
+   },
+   {
+    "text": "Lookout detectors and Fraud Detector rules",
+    "why": "Not listed for Responsible AI."
+   },
+   {
+    "text": "EMR and QuickSight",
+    "why": "Not Responsible AI tools."
+   }
+  ],
+  "takeaway": "These help evaluate models and constrain their behavior."
+ }
+]
