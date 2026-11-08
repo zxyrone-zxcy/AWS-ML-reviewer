@@ -5,7 +5,6 @@
 @section('content')
     {{-- 1. Hero: one message, one primary action --}}
     <section class="hero">
-        <span class="eyebrow">Free · No sign-up · Works offline in your browser</span>
         <h1>Pass the AWS <span class="hl">Machine Learning Engineer</span> Associate exam</h1>
         <p class="lead">Practice MLA-C01 questions where every answer choice is explained, so you learn
             why the right answer is right <em>and</em> why the others aren't.</p>
