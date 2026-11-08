@@ -1,13 +1,20 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": null,
-  "installCommand": "",
-  "buildCommand": "",
-  "outputDirectory": "public",
+  "installCommand": "npm install",
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
   "functions": {
-    "api/index.php": { "runtime": "vercel-php@0.7.4" }
+    "api/index.php": {
+      "runtime": "vercel-php@0.7.4"
+    }
   },
-  "rewrites": [{ "source": "/(.*)", "destination": "/api/index.php" }],
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/api/index.php"
+    }
+  ],
   "env": {
     "APP_ENV": "production",
     "APP_DEBUG": "false",
