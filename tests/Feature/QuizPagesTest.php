@@ -18,6 +18,11 @@ class QuizPagesTest extends TestCase
         $this->get('/')->assertSee('MLA-C01');
     }
 
+    public function test_study_guide_page_loads(): void
+    {
+        $this->get('/guide')->assertOk()->assertSee('Bedrock Guardrails')->assertSee('AgentCore');
+    }
+
     public function test_question_bank_is_valid(): void
     {
         $response = $this->getJson('/question-bank')->assertOk();

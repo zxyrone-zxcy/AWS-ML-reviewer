@@ -14,6 +14,7 @@
         <nav>
             <a href="{{ route('home') }}" @class(['active' => request()->routeIs('home')])>Home</a>
             <a href="{{ route('quiz') }}" @class(['active' => request()->routeIs('quiz')])>Practice</a>
+            <a href="{{ route('guide') }}" @class(['active' => request()->routeIs('guide')])>Guide</a>
             <a href="{{ route('about') }}" @class(['active' => request()->routeIs('about')])>About</a>
         </nav>
     </div>
