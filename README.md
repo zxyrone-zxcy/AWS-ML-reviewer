@@ -1,7 +1,7 @@
 # AWS MLA-C01 Reviewer
 
 A free, public practice site for the **AWS Certified Machine Learning Engineer – Associate (MLA-C01)** exam,
-built with **Laravel + Blade**. 110 multiple-choice questions in 19 topics. Every answer shows an explanation for
+built with **Laravel + Blade**. 137 multiple-choice questions in 25 topics. Every answer shows an explanation for
 the correct choice *and* each distractor. There are no accounts and no database; learners' progress lives in their
 own browser (localStorage).
 
@@ -191,6 +191,14 @@ copy of the notes. Please read the original pages for the full explanations.
 - [Intro to CloudFormation (from SAA-C03 notes)](https://psychedelic-cuticle-e74.notion.site/AWS-CloudFormation-CFN-101-80186a5de60d46faa77ba7b762bcef62)
 - [Intro to EventBridge (from SAA-C03 notes)](https://psychedelic-cuticle-e74.notion.site/Amazon-EventBridge-c57081d57f3f4c3381fe1ceb87f2d85a)
 - [Intro to Step Functions (from SAA-C03 notes)](https://psychedelic-cuticle-e74.notion.site/AWS-Step-Functions-101-7d04ae82e8a94fd499aaa5458c912f08)
+
+### Additional sources (generative-AI / MLA-C02 topics)
+
+The questions on Bedrock Guardrails, RAG & Knowledge Bases, FM customization & selection, Bedrock inference & cost,
+Agents & AgentCore and FM evaluation were written from AWS's public documentation and FAQs:
+Bedrock Guardrails docs, Knowledge Bases chunking, Bedrock FAQs, AgentCore FAQs, Bedrock Evaluations and
+Cross-Region inference. See the [Amazon Bedrock documentation](https://docs.aws.amazon.com/bedrock/) and
+[Bedrock FAQs](https://aws.amazon.com/bedrock/faqs/).
 
 ### Notes
 

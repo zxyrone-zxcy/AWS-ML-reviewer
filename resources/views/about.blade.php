@@ -23,6 +23,12 @@
         <h2>Credits &amp; accuracy</h2>
         <p>Questions were written from the public MLA-C01 study notes by
             <a href="https://psychedelic-cuticle-e74.notion.site/AWS-Machine-Learning-Engineer-Associate-MLA-C01-19686c7395e780e1bab0eac37d0401a0" rel="noopener" target="_blank">Christian Greciano</a>.
+            The generative-AI topics (Bedrock Guardrails, RAG &amp; Knowledge Bases, FM customization,
+            Bedrock inference &amp; cost, AgentCore agents and FM evaluation) were written from AWS's public
+            <a href="https://docs.aws.amazon.com/bedrock/" rel="noopener" target="_blank">Amazon Bedrock documentation</a>
+            and <a href="https://aws.amazon.com/bedrock/faqs/" rel="noopener" target="_blank">FAQs</a>:
+            Bedrock Guardrails docs, Knowledge Bases chunking, Bedrock FAQs, AgentCore FAQs, Bedrock
+            Evaluations and Cross-Region inference.
             They are a study aid, not exam dumps, and may contain mistakes or go out of date as AWS
             changes. Always check the official
             <a href="https://aws.amazon.com/certification/certified-machine-learning-engineer-associate/"

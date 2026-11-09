@@ -2858,5 +2858,707 @@
       }
     ],
     "takeaway": "These help evaluate models and constrain their behavior."
+  },
+  {
+    "id": 111,
+    "topic": "Bedrock Guardrails",
+    "topic_slug": "bedrock-guardrails",
+    "question": "A bank's assistant must refuse any conversation about illegal investment advice, however it is phrased. Which Bedrock Guardrails policy fits best?",
+    "correct": 2,
+    "options": [
+      {
+        "text": "Word filters",
+        "why": "Word filters match exact words or phrases, so they miss the many ways a user can phrase a subject."
+      },
+      {
+        "text": "Sensitive information filters",
+        "why": "These detect and block or mask PII and regex patterns, not whole subjects."
+      },
+      {
+        "text": "Denied topics",
+        "why": "Correct. You define a topic in natural language, optionally with sample phrases, and Guardrails blocks it in prompts and responses based on meaning."
+      },
+      {
+        "text": "Contextual grounding check",
+        "why": "This checks whether a response is grounded in a source and relevant to the query. It does not block subjects."
+      }
+    ],
+    "takeaway": "Subjects and themes → denied topics. Specific words/phrases → word filters. PII/regex → sensitive information filters."
+  },
+  {
+    "id": 112,
+    "topic": "Bedrock Guardrails",
+    "topic_slug": "bedrock-guardrails",
+    "question": "You need to block a list of competitor names in user prompts and model outputs. Which is the BEST fit?",
+    "correct": 0,
+    "options": [
+      {
+        "text": "Word filters",
+        "why": "Correct. Custom word filters block exact words and phrases, such as competitor names or profanity (a managed list exists)."
+      },
+      {
+        "text": "Denied topics",
+        "why": "Denied topics capture themes contextually and are not designed to catch specific names or individual words."
+      },
+      {
+        "text": "Content filters",
+        "why": "These cover categories such as Hate, Insults, Sexual, Violence, Misconduct and Prompt Attack."
+      },
+      {
+        "text": "Automated Reasoning checks",
+        "why": "These validate responses against logical rules you define. They are not a name blocklist."
+      }
+    ],
+    "takeaway": "Specific names/words → word filters. Themes → denied topics."
+  },
+  {
+    "id": 113,
+    "topic": "Bedrock Guardrails",
+    "topic_slug": "bedrock-guardrails",
+    "question": "A call-center app summarizes transcripts and must not expose customer names or SSNs in summaries. Which setting helps?",
+    "correct": 3,
+    "options": [
+      {
+        "text": "Content filter set to HIGH strength for the Misconduct category",
+        "why": "Misconduct is a harmful-content category and has nothing to do with PII."
+      },
+      {
+        "text": "A denied topic named 'Customer data' with sample phrases",
+        "why": "Denied topics are theme-based and a poor fit for detecting individual PII values."
+      },
+      {
+        "text": "Contextual grounding threshold of 0.99 on the summaries",
+        "why": "Grounding checks whether answers are supported by source text. It does not remove PII."
+      },
+      {
+        "text": "Sensitive information filter set to mask (anonymize) PII",
+        "why": "Correct. The filter detects PII entities (and custom regex) and can block or mask them in inputs and responses."
+      }
+    ],
+    "takeaway": "Sensitive information filters: block or mask PII, plus regex for custom identifiers."
+  },
+  {
+    "id": 114,
+    "topic": "Bedrock Guardrails",
+    "topic_slug": "bedrock-guardrails",
+    "question": "Your RAG app sometimes adds facts that are not in the retrieved passages. Which Guardrails feature detects this?",
+    "correct": 1,
+    "options": [
+      {
+        "text": "Prompt attack filter",
+        "why": "This detects jailbreaks and prompt injection, not ungrounded answers."
+      },
+      {
+        "text": "Contextual grounding check",
+        "why": "Correct. It scores grounding (is the answer supported by the source?) and relevance (does it answer the query?) and blocks responses below your thresholds."
+      },
+      {
+        "text": "Word filters",
+        "why": "They match fixed words, so they cannot judge factual support."
+      },
+      {
+        "text": "Sensitive information filter",
+        "why": "This handles PII, not hallucinations."
+      }
+    ],
+    "takeaway": "Grounding + relevance thresholds. A higher threshold blocks more responses, so tune it to your accuracy tolerance."
+  },
+  {
+    "id": 115,
+    "topic": "Bedrock Guardrails",
+    "topic_slug": "bedrock-guardrails",
+    "question": "You want one guardrail to evaluate text from a model hosted OUTSIDE Bedrock, without invoking a Bedrock FM. What do you use?",
+    "correct": 2,
+    "options": [
+      {
+        "text": "Attach the guardrail to a Bedrock Agent only",
+        "why": "Agents are one integration point, but they would not cover text from an external model."
+      },
+      {
+        "text": "Provisioned Throughput",
+        "why": "This is a capacity option for Bedrock models. It has nothing to do with guardrails."
+      },
+      {
+        "text": "The ApplyGuardrail API",
+        "why": "Correct. It evaluates any text against a guardrail independently of model invocation, so it works with custom and third-party models too."
+      },
+      {
+        "text": "Bedrock Model Evaluation",
+        "why": "This scores model quality in evaluation jobs. It does not filter live traffic."
+      }
+    ],
+    "takeaway": "ApplyGuardrail = guardrails as a standalone check, usable with any FM."
+  },
+  {
+    "id": 116,
+    "topic": "Bedrock Guardrails",
+    "topic_slug": "bedrock-guardrails",
+    "question": "Which Guardrails capability validates model responses against a set of logical rules and policies you define?",
+    "correct": 0,
+    "options": [
+      {
+        "text": "Automated Reasoning checks",
+        "why": "Correct. They help validate accuracy against logical rules, flag hallucinations and unstated assumptions."
+      },
+      {
+        "text": "Denied topics",
+        "why": "Denied topics block subjects. They do not verify logical correctness."
+      },
+      {
+        "text": "Word filters",
+        "why": "Exact word/phrase blocking only."
+      },
+      {
+        "text": "Content filters",
+        "why": "Harm-category filtering, not rule verification."
+      }
+    ],
+    "takeaway": "Automated Reasoning = rule-based verification of answers."
+  },
+  {
+    "id": 117,
+    "topic": "RAG & Knowledge Bases",
+    "topic_slug": "rag-knowledge-bases",
+    "question": "Your RAG answers lack context because small chunks are retrieved. You want precise matching on small pieces but larger context sent to the FM. Which chunking strategy?",
+    "correct": 1,
+    "options": [
+      {
+        "text": "Fixed-size chunking with higher overlap",
+        "why": "Overlap helps continuity but does not swap in larger context at retrieval time."
+      },
+      {
+        "text": "Hierarchical chunking",
+        "why": "Correct. Search runs on small child chunks, and each is replaced by its larger parent chunk at retrieval. Note you may get fewer results than requested."
+      },
+      {
+        "text": "No chunking",
+        "why": "This is for documents already split. It gives no parent/child behavior."
+      },
+      {
+        "text": "Re-embedding with fewer dimensions",
+        "why": "Dimensions affect storage and precision, not how much context is returned."
+      }
+    ],
+    "takeaway": "Hierarchical = child chunks for matching, parent chunks for context."
+  },
+  {
+    "id": 118,
+    "topic": "RAG & Knowledge Bases",
+    "topic_slug": "rag-knowledge-bases",
+    "question": "Documents are narrative with no obvious section boundaries. Which Knowledge Bases chunking strategy groups content by meaning?",
+    "correct": 3,
+    "options": [
+      {
+        "text": "Fixed-size chunking",
+        "why": "It splits by a token size you set, regardless of meaning."
+      },
+      {
+        "text": "Hierarchical chunking",
+        "why": "It builds parent/child structure by size, not by semantic similarity."
+      },
+      {
+        "text": "No chunking",
+        "why": "This keeps each file as one chunk."
+      },
+      {
+        "text": "Semantic chunking",
+        "why": "Correct. It combines neighboring sentences by embedding similarity, using a buffer size and max tokens, so chunk sizes vary."
+      }
+    ],
+    "takeaway": "Semantic chunking = meaning-based boundaries (buffer size, max tokens)."
+  },
+  {
+    "id": 119,
+    "topic": "RAG & Knowledge Bases",
+    "topic_slug": "rag-knowledge-bases",
+    "question": "What are the main steps when a Knowledge Base ingests your documents?",
+    "correct": 0,
+    "options": [
+      {
+        "text": "Parse and chunk, embed with an embeddings model, store vectors in a vector index",
+        "why": "Correct. At query time the question is embedded with the same model, similar chunks are retrieved, and they augment the prompt."
+      },
+      {
+        "text": "Fine-tune the FM on the documents, then deploy the tuned model for inference",
+        "why": "That is customization, not RAG. RAG leaves the FM's weights unchanged."
+      },
+      {
+        "text": "Copy the documents into the model's context window permanently, for all requests",
+        "why": "Context is per request. RAG retrieves relevant chunks each time."
+      },
+      {
+        "text": "Convert documents into labels and train a classifier to answer questions",
+        "why": "Not how Knowledge Bases work."
+      }
+    ],
+    "takeaway": "RAG = chunk → embed → store → retrieve → augment → generate."
+  },
+  {
+    "id": 120,
+    "topic": "RAG & Knowledge Bases",
+    "topic_slug": "rag-knowledge-bases",
+    "question": "Which vector store choice supports hybrid search (keyword plus vector) for a Bedrock Knowledge Base?",
+    "correct": 2,
+    "options": [
+      {
+        "text": "Amazon S3 Vectors",
+        "why": "It is cost-optimized for large, infrequently queried vector sets and best for pure semantic search."
+      },
+      {
+        "text": "Amazon Athena",
+        "why": "Athena queries data in S3 with SQL and is not a vector store for Knowledge Bases."
+      },
+      {
+        "text": "Amazon OpenSearch Serverless",
+        "why": "Correct. It supports hybrid search combining text keywords with vectors, and it also supports binary embeddings."
+      },
+      {
+        "text": "Amazon QuickSight",
+        "why": "A BI tool, not a vector store."
+      }
+    ],
+    "takeaway": "OpenSearch Serverless: hybrid search and binary embeddings. S3 Vectors: low-cost semantic search."
+  },
+  {
+    "id": 121,
+    "topic": "RAG & Knowledge Bases",
+    "topic_slug": "rag-knowledge-bases",
+    "question": "Why does RAG often beat fine-tuning for answering questions about frequently changing company documents?",
+    "correct": 1,
+    "options": [
+      {
+        "text": "RAG permanently changes the model weights to include new documents",
+        "why": "It does not. Changing weights is what fine-tuning does."
+      },
+      {
+        "text": "You update knowledge by re-syncing the data source, with no retraining job",
+        "why": "Correct. New or changed documents are re-ingested and embedded, and the FM stays as is. Fine-tuning would need new training runs."
+      },
+      {
+        "text": "RAG removes the need for any embeddings model or vector storage",
+        "why": "RAG depends on embeddings for similarity search."
+      },
+      {
+        "text": "RAG always costs nothing extra to run, whatever the document volume",
+        "why": "There are costs for embeddings, vector storage and inference."
+      }
+    ],
+    "takeaway": "Fresh, changing knowledge → RAG. Style/format/task behavior → fine-tuning."
+  },
+  {
+    "id": 122,
+    "topic": "FM customization & selection",
+    "topic_slug": "fm-customization-selection",
+    "question": "You have a large amount of UNLABELED domain text (legal filings) and the base model misreads the jargon. Which Bedrock customization fits?",
+    "correct": 0,
+    "options": [
+      {
+        "text": "Continued pre-training",
+        "why": "Correct. It trains on unlabeled data to build domain knowledge. Fine-tuning can follow with fewer labeled examples."
+      },
+      {
+        "text": "Fine-tuning with prompt/completion pairs",
+        "why": "That needs labeled data, which you do not have."
+      },
+      {
+        "text": "Model distillation",
+        "why": "This transfers a teacher's behavior to a smaller student model. It does not teach new domain text."
+      },
+      {
+        "text": "Contextual grounding check",
+        "why": "A guardrail feature, not a training method."
+      }
+    ],
+    "takeaway": "Unlabeled → continued pre-training. Labeled task examples → fine-tuning."
+  },
+  {
+    "id": 123,
+    "topic": "FM customization & selection",
+    "topic_slug": "fm-customization-selection",
+    "question": "You validated quality with a large model but need a cheaper, faster one for production. Which Bedrock feature fits?",
+    "correct": 3,
+    "options": [
+      {
+        "text": "Cross-Region inference",
+        "why": "It improves throughput and availability, not model size or cost per token."
+      },
+      {
+        "text": "Continued pre-training",
+        "why": "It adds knowledge. It does not shrink the model."
+      },
+      {
+        "text": "Word filters",
+        "why": "Not a model-optimization feature."
+      },
+      {
+        "text": "Model distillation",
+        "why": "Correct. A large teacher generates responses used to fine-tune a smaller student. The result has the student's latency profile."
+      }
+    ],
+    "takeaway": "Distillation = teacher → student, smaller and faster for a specific use case."
+  },
+  {
+    "id": 124,
+    "topic": "FM customization & selection",
+    "topic_slug": "fm-customization-selection",
+    "question": "You fine-tuned a Llama model in SageMaker and want to serve it through the Bedrock API without managing servers. What do you use?",
+    "correct": 2,
+    "options": [
+      {
+        "text": "Bedrock Guardrails",
+        "why": "Safeguards, not a model-hosting route."
+      },
+      {
+        "text": "Amazon Kendra",
+        "why": "A search service."
+      },
+      {
+        "text": "Bedrock Custom Model Import",
+        "why": "Correct. It imports models built elsewhere (for example SageMaker or EC2) if their architecture is supported (such as Llama, Mistral, Flan) and serves them serverlessly."
+      },
+      {
+        "text": "Provisioned Throughput on the base model",
+        "why": "That reserves capacity for a Bedrock model. It does not bring in your external weights."
+      }
+    ],
+    "takeaway": "Custom Model Import = bring supported-architecture models into Bedrock."
+  },
+  {
+    "id": 125,
+    "topic": "FM customization & selection",
+    "topic_slug": "fm-customization-selection",
+    "question": "After a Bedrock fine-tuning job finishes, how do you run inference on the resulting custom model?",
+    "correct": 1,
+    "options": [
+      {
+        "text": "On-demand inference like base models, with no extra purchase needed",
+        "why": "Customized models are not served on demand in this way."
+      },
+      {
+        "text": "Purchase Provisioned Throughput for the custom model and invoke it",
+        "why": "Correct. You buy Provisioned Throughput (model units) for the custom model and call it with its ARN."
+      },
+      {
+        "text": "Download the weights and host them yourself on a Lambda function",
+        "why": "Bedrock keeps custom models private and managed."
+      },
+      {
+        "text": "Attach the custom model to an inference profile for on-demand use",
+        "why": "Inference profiles do not support Provisioned Throughput."
+      }
+    ],
+    "takeaway": "Custom model → Provisioned Throughput."
+  },
+  {
+    "id": 126,
+    "topic": "FM customization & selection",
+    "topic_slug": "fm-customization-selection",
+    "question": "Which fine-tuning training data format does Bedrock use for prompt/completion pairs?",
+    "correct": 0,
+    "options": [
+      {
+        "text": "JSON Lines (JSONL) files in S3",
+        "why": "Correct. Each line holds a prompt and a completion (continued pre-training needs only the prompt field because it is unlabeled)."
+      },
+      {
+        "text": "Parquet files in DynamoDB",
+        "why": "Not supported as training input."
+      },
+      {
+        "text": "A trained RecordIO stream from Kinesis",
+        "why": "Not a Bedrock customization format."
+      },
+      {
+        "text": "Excel workbooks in EFS",
+        "why": "Not supported."
+      }
+    ],
+    "takeaway": "Training data = JSONL in S3."
+  },
+  {
+    "id": 127,
+    "topic": "Bedrock inference & cost",
+    "topic_slug": "bedrock-inference-cost",
+    "question": "Traffic spikes throttle your on-demand Bedrock calls. You want higher throughput with no extra routing charge and no capacity planning. What do you use?",
+    "correct": 2,
+    "options": [
+      {
+        "text": "Provisioned Throughput purchased on an inference profile",
+        "why": "Inference profiles do not support Provisioned Throughput."
+      },
+      {
+        "text": "Batch inference, sending the spiking requests in asynchronous jobs",
+        "why": "Asynchronous and for offline workloads, not for interactive spikes."
+      },
+      {
+        "text": "Cross-Region inference through an inference profile",
+        "why": "Correct. Requests route across Regions in the profile. There is no added routing cost, and you pay the price of your source Region."
+      },
+      {
+        "text": "A larger max_tokens value on each request",
+        "why": "Output length does not change capacity."
+      }
+    ],
+    "takeaway": "Cross-Region inference: higher on-demand throughput. Geographic profiles keep processing within a geography."
+  },
+  {
+    "id": 128,
+    "topic": "Bedrock inference & cost",
+    "topic_slug": "bedrock-inference-cost",
+    "question": "Data residency rules require processing to stay within the EU while using cross-Region inference. Which should you choose?",
+    "correct": 1,
+    "options": [
+      {
+        "text": "A global inference profile",
+        "why": "It can route to any supported commercial Region worldwide."
+      },
+      {
+        "text": "A geographic (EU) inference profile",
+        "why": "Correct. Requests are routed only within that geography."
+      },
+      {
+        "text": "Batch inference only",
+        "why": "Not a residency control."
+      },
+      {
+        "text": "Disable CloudTrail logging",
+        "why": "Unrelated to where processing happens."
+      }
+    ],
+    "takeaway": "Compliance → geographic profile. Max throughput → global profile."
+  },
+  {
+    "id": 129,
+    "topic": "Bedrock inference & cost",
+    "topic_slug": "bedrock-inference-cost",
+    "question": "You must score 2 million documents overnight at the lowest cost with no latency requirement. Which Bedrock mode fits?",
+    "correct": 3,
+    "options": [
+      {
+        "text": "Real-time Converse API calls in a loop",
+        "why": "Works, but it is the wrong mode for large offline jobs."
+      },
+      {
+        "text": "Provisioned Throughput with a 6-month commitment",
+        "why": "Reserved capacity pays off for steady, latency-sensitive traffic."
+      },
+      {
+        "text": "Streaming responses",
+        "why": "Streaming reduces perceived latency, not cost."
+      },
+      {
+        "text": "Batch inference",
+        "why": "Correct. You submit requests asynchronously with data in S3, then collect the results from S3, typically at lower cost."
+      }
+    ],
+    "takeaway": "Offline and large → batch. Steady and critical → Provisioned Throughput. Bursty interactive → on-demand/cross-Region."
+  },
+  {
+    "id": 130,
+    "topic": "Agents & AgentCore",
+    "topic_slug": "agents-agentcore",
+    "question": "You want to expose existing REST APIs and Lambda functions to agents as MCP-compatible tools. Which AgentCore capability?",
+    "correct": 0,
+    "options": [
+      {
+        "text": "AgentCore Gateway",
+        "why": "Correct. It turns APIs and Lambda functions into agent-ready tools, can connect existing MCP servers, and supports IAM and OAuth authorization."
+      },
+      {
+        "text": "AgentCore Memory",
+        "why": "Stores short-term and long-term context for agents."
+      },
+      {
+        "text": "AgentCore Browser",
+        "why": "A managed browser runtime for web tasks."
+      },
+      {
+        "text": "AgentCore Code Interpreter",
+        "why": "A sandbox for running code the agent writes."
+      }
+    ],
+    "takeaway": "Gateway = tools. Memory = context. Identity = access. Observability = traces."
+  },
+  {
+    "id": 131,
+    "topic": "Agents & AgentCore",
+    "topic_slug": "agents-agentcore",
+    "question": "An agent must call GitHub on behalf of a user using OAuth, without developers handling tokens by hand. Which capability?",
+    "correct": 2,
+    "options": [
+      {
+        "text": "AgentCore Runtime",
+        "why": "Hosts and scales the agent."
+      },
+      {
+        "text": "AgentCore Observability",
+        "why": "Traces and monitors, and it does not manage credentials."
+      },
+      {
+        "text": "AgentCore Identity",
+        "why": "Correct. It provides a token vault and OAuth flows so agents can act on behalf of users or themselves."
+      },
+      {
+        "text": "AgentCore Memory",
+        "why": "Context retention, not authentication."
+      }
+    ],
+    "takeaway": "Identity = secure credentials and OAuth for agents."
+  },
+  {
+    "id": 132,
+    "topic": "Agents & AgentCore",
+    "topic_slug": "agents-agentcore",
+    "question": "You need step-by-step traces of an agent's tool calls, latency and token usage in production. Which capability?",
+    "correct": 1,
+    "options": [
+      {
+        "text": "AgentCore Gateway",
+        "why": "Connects tools. Its own metrics are narrower than an end-to-end agent trace."
+      },
+      {
+        "text": "AgentCore Observability",
+        "why": "Correct. It gives traces and spans, metrics (sessions, latency, tokens, errors) and OpenTelemetry-compatible dashboards via CloudWatch."
+      },
+      {
+        "text": "AgentCore Identity",
+        "why": "Handles access, not tracing."
+      },
+      {
+        "text": "Bedrock Guardrails",
+        "why": "Safety filters, not tracing."
+      }
+    ],
+    "takeaway": "Observability = trace, debug, monitor agents."
+  },
+  {
+    "id": 133,
+    "topic": "Agents & AgentCore",
+    "topic_slug": "agents-agentcore",
+    "question": "What does AgentCore Runtime provide?",
+    "correct": 3,
+    "options": [
+      {
+        "text": "A managed vector store used by Knowledge Bases to hold embeddings",
+        "why": "That is Knowledge Bases' job."
+      },
+      {
+        "text": "A fixed list of AWS-only models that agents are allowed to call",
+        "why": "It supports any framework, protocol and model."
+      },
+      {
+        "text": "A labeling workflow that prepares training data for the agent",
+        "why": "That is SageMaker Ground Truth."
+      },
+      {
+        "text": "A serverless environment to deploy and scale agents, with session isolation",
+        "why": "Correct. Each user session runs in its own isolated environment."
+      }
+    ],
+    "takeaway": "Runtime = secure, serverless hosting for agents and tools."
+  },
+  {
+    "id": 134,
+    "topic": "FM evaluation",
+    "topic_slug": "fm-evaluation",
+    "question": "Which method scores outputs on subjective qualities like brand voice using your own reviewers?",
+    "correct": 2,
+    "options": [
+      {
+        "text": "BERTScore",
+        "why": "A programmatic similarity metric against a reference, not subjective judgment by people."
+      },
+      {
+        "text": "Contextual grounding check",
+        "why": "A runtime guardrail, not an evaluation method."
+      },
+      {
+        "text": "Bedrock human evaluation",
+        "why": "Correct. You define custom metrics (relevance, style, brand voice) and use your own employees or an AWS-managed team."
+      },
+      {
+        "text": "Provisioned Throughput",
+        "why": "A capacity feature."
+      }
+    ],
+    "takeaway": "Subjective → human eval (or LLM-as-a-judge with custom metrics)."
+  },
+  {
+    "id": 135,
+    "topic": "FM evaluation",
+    "topic_slug": "fm-evaluation",
+    "question": "You want fast, low-cost, human-like scoring of thousands of responses for correctness, completeness and faithfulness. What do you use?",
+    "correct": 0,
+    "options": [
+      {
+        "text": "Bedrock LLM-as-a-judge evaluation",
+        "why": "Correct. A judge model scores built-in metrics (correctness, completeness, faithfulness, harmfulness, refusal) or custom ones."
+      },
+      {
+        "text": "Word filters applied to the responses",
+        "why": "Not an evaluation tool."
+      },
+      {
+        "text": "Manual review by all employees",
+        "why": "Accurate but slow and costly at this scale."
+      },
+      {
+        "text": "Fine-tuning the judge model first",
+        "why": "Not needed. Built-in metrics work out of the box."
+      }
+    ],
+    "takeaway": "LLM-as-a-judge = scalable automated evaluation. Spot-check against human baselines."
+  },
+  {
+    "id": 136,
+    "topic": "FM evaluation",
+    "topic_slug": "fm-evaluation",
+    "question": "Which metric family suits summarization, comparing generated text to a reference by n-gram overlap (recall-oriented)?",
+    "correct": 1,
+    "options": [
+      {
+        "text": "BLEU",
+        "why": "Precision-oriented n-gram overlap, mainly used for machine translation."
+      },
+      {
+        "text": "ROUGE",
+        "why": "Correct. ROUGE is the classic recall-oriented overlap metric for summarization."
+      },
+      {
+        "text": "Mean squared error",
+        "why": "A regression metric, not for text."
+      },
+      {
+        "text": "AUC-ROC",
+        "why": "A classification metric."
+      }
+    ],
+    "takeaway": "ROUGE → summarization. BLEU → translation. BERTScore → semantic similarity."
+  },
+  {
+    "id": 137,
+    "topic": "FM evaluation",
+    "topic_slug": "fm-evaluation",
+    "question": "Retrieved chunks seem irrelevant to user questions. Which evaluation targets this part of the RAG pipeline?",
+    "correct": 2,
+    "options": [
+      {
+        "text": "Generation-only faithfulness scoring of the final answer",
+        "why": "It checks the answer against context, not whether retrieval found the right context."
+      },
+      {
+        "text": "Toxicity scoring of the model's responses to users",
+        "why": "Unrelated to retrieval quality."
+      },
+      {
+        "text": "RAG retrieval evaluation (context relevance and coverage)",
+        "why": "Correct. Bedrock can evaluate retrieval alone, or end-to-end retrieve-and-generate with correctness, completeness and faithfulness."
+      },
+      {
+        "text": "Latency monitoring of the vector store queries",
+        "why": "Speed, not relevance."
+      }
+    ],
+    "takeaway": "Separate retrieval metrics (relevance, coverage) from generation metrics (faithfulness, correctness)."
   }
 ]
