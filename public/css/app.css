@@ -208,3 +208,9 @@ code{background:var(--hint);border-radius:5px;padding:1px 6px;font:13px ui-monos
 .chip{display:inline-block;font-size:12px;font-weight:700;background:var(--hint);color:var(--mute);border-radius:99px;padding:3px 10px}
 .g-foot{font-size:13.5px;margin-top:8px}
 @media(max-width:640px){.g-sec{padding:18px}.flow{flex-direction:column}.arr{transform:rotate(90deg);align-self:center}.d-row{flex-direction:column;align-items:flex-start}}
+
+.opt.sel{border-color:var(--accent);background:var(--accent-soft)}
+.opt.sel .l{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.choose{font-size:13.5px;font-weight:700;color:var(--accent);margin:-4px 0 14px}
+.recap.concept{border-left-color:var(--ok)}
+#submit{margin:4px 0 8px}

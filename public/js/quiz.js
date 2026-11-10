@@ -5,7 +5,7 @@
   var root = document.getElementById('quiz-app');
   if (!root) return;
 
-  var LETTERS = 'ABCD';
+  var LETTERS = 'ABCDEF';
   var bank = [];
   var topics = [];
   var session = null; // {key, label, list, idx, score, missed, answered, optOrder}
@@ -22,6 +22,10 @@
     }
     return a;
   }
+
+  function isExam(q) { return q.level === 'exam'; }
+  function isMulti(q) { return Array.isArray(q.correct); }
+  function correctSet(q) { return isMulti(q) ? q.correct : [q.correct]; }
 
   function buildTopics() {
     var map = {};
@@ -45,6 +49,7 @@
       '<p>' + bank.length + ' questions across ' + topics.length + ' topics. Every answer choice is explained.</p></header>' +
       '<section class="block"><h2 class="block-title">Quick start</h2><div class="start-grid">' +
       startCard('quick', '⚡', 'Quick 10', 'Ten random questions, about 5 minutes') +
+      (bank.some(isExam) ? startCard('exam', '🎯', 'Exam-style scenarios', bank.filter(isExam).length + ' scenario and choose-two questions, like the real exam') : '') +
       startCard('all', '🔀', 'All questions', bank.length + ' questions, shuffled') +
       (missedCount ? startCard('missed', '🔁', 'Review missed', missedCount + ' question' + (missedCount === 1 ? '' : 's') + ' to revisit') : '') +
       '</div></section>' +
@@ -74,6 +79,8 @@
     var list, label;
     if (key === 'all') {
       list = bank; label = 'All topics';
+    } else if (key === 'exam') {
+      list = bank.filter(isExam); label = 'Exam-style scenarios';
     } else if (key === 'quick') {
       list = shuffle(bank).slice(0, 10); label = 'Quick 10';
     } else if (key === 'missed') {
@@ -91,7 +98,7 @@
   }
 
   function begin(key, label, list) {
-    session = { key: key, label: label, list: shuffle(list), idx: 0, score: 0, missed: [], answered: false, optOrder: [] };
+    session = { key: key, label: label, list: shuffle(list), idx: 0, score: 0, missed: [], answered: false, optOrder: [], sel: [] };
     renderQuestion();
   }
 
@@ -100,25 +107,34 @@
     if (s.idx >= s.list.length) { return results(); }
     var q = s.list[s.idx];
     s.answered = false;
-    s.optOrder = shuffle([0, 1, 2, 3]);
+    s.optOrder = shuffle(q.options.map(function (_, i) { return i; }));
+    s.sel = [];
+    var multi = isMulti(q);
+    var need = correctSet(q).length;
     var pct = Math.round((s.idx / s.list.length) * 100);
     var html = '<div class="quiz-top"><button class="link-btn" id="exit">← All topics</button>' +
       '<span class="score-pill">Score ' + s.score + '</span></div>' +
       '<div class="progressbar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + pct + '"><i style="width:' + pct + '%"></i></div>' +
       '<div class="meta"><span>' + esc(s.label) + '</span><span>Question ' + (s.idx + 1) + ' of ' + s.list.length + '</span></div>' +
       '<section class="panel qcard"><span class="topic-tag">' + esc(q.topic) + '</span>' +
-      '<h2 class="q">' + esc(q.question) + '</h2><div id="opts">';
+      '<h2 class="q">' + esc(q.question) + '</h2>' +
+      (multi ? '<p class="choose">Choose ' + need + '. All ' + need + ' must be correct to earn the point.</p>' : '') +
+      '<div id="opts">';
     s.optOrder.forEach(function (oi, k) {
       html += '<button class="opt" data-k="' + k + '"><div class="t"><span class="l">' + LETTERS[k] +
         '</span><span class="otext">' + esc(q.options[oi].text) + '</span></div><div class="why"></div></button>';
     });
-    html += '</div><div id="fb"></div></section>' +
-      '<p class="kbd-hint">Tip: press <kbd>A</kbd>–<kbd>D</kbd> or <kbd>1</kbd>–<kbd>4</kbd> to answer, <kbd>Enter</kbd> for next.</p>';
+    html += '</div>' + (multi ? '<button class="btn primary" id="submit" disabled>Submit answer</button>' : '') +
+      '<div id="fb"></div></section>' +
+      '<p class="kbd-hint">Tip: press <kbd>A</kbd>–<kbd>' + LETTERS[q.options.length - 1] + '</kbd> or <kbd>1</kbd>–<kbd>' + q.options.length +
+      '</kbd> to ' + (multi ? 'select, <kbd>Enter</kbd> to submit, then <kbd>Enter</kbd> for next' : 'answer, <kbd>Enter</kbd> for next') + '.</p>';
     root.innerHTML = html;
     var opts = root.querySelectorAll('.opt');
     Array.prototype.forEach.call(opts, function (b) {
       b.addEventListener('click', function () { pick(+b.getAttribute('data-k')); });
     });
+    var sub = document.getElementById('submit');
+    if (sub) sub.addEventListener('click', submitMulti);
     document.getElementById('exit').addEventListener('click', function () {
       if (s.score + s.missed.length === 0 || confirm('Leave this round? Your progress in it will be lost.')) menu();
     });
@@ -128,23 +144,48 @@
   function pick(k) {
     var s = session;
     if (s.answered) return;
+    var q = s.list[s.idx];
+    if (!isMulti(q)) { grade([k]); return; }
+    var at = s.sel.indexOf(k);
+    if (at === -1) s.sel.push(k); else s.sel.splice(at, 1);
+    var opts = root.querySelectorAll('.opt');
+    Array.prototype.forEach.call(opts, function (b, i) {
+      var on = s.sel.indexOf(i) !== -1;
+      b.classList.toggle('sel', on);
+      b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+    document.getElementById('submit').disabled = s.sel.length !== correctSet(q).length;
+  }
+
+  function submitMulti() {
+    var s = session;
+    if (s.answered || s.sel.length !== correctSet(s.list[s.idx]).length) return;
+    grade(s.sel.slice());
+  }
+
+  function grade(picked) {
+    var s = session;
     s.answered = true;
     var q = s.list[s.idx];
-    var chosen = s.optOrder[k];
-    var ok = chosen === q.correct;
+    var right = correctSet(q);
+    var chosen = picked.map(function (k) { return s.optOrder[k]; });
+    var ok = chosen.length === right.length && chosen.every(function (oi) { return right.indexOf(oi) !== -1; });
     if (ok) s.score++; else s.missed.push(q);
     MlaProgress.recordAnswer(q.id, ok);
+    var sub = document.getElementById('submit');
+    if (sub) sub.style.display = 'none';
 
     var opts = root.querySelectorAll('.opt');
     Array.prototype.forEach.call(opts, function (b, i) {
       var oi = s.optOrder[i];
-      var isCorrect = oi === q.correct;
-      var isChosen = i === k;
+      var isCorrect = right.indexOf(oi) !== -1;
+      var isChosen = picked.indexOf(i) !== -1;
       var tag, cls;
-      if (isCorrect) { cls = 'correct'; tag = isChosen ? '✓ Your answer: correct' : '✓ Correct answer'; }
+      if (isCorrect) { cls = 'correct'; tag = isChosen ? '✓ Your answer: correct' : '✓ Correct answer (you missed this one)'; }
       else if (isChosen) { cls = 'wrong'; tag = '✗ Your answer: incorrect'; }
       else { cls = 'other'; tag = 'Why this one is not the answer'; }
       b.disabled = true;
+      b.classList.remove('sel');
       b.classList.add('show', cls);
       b.querySelector('.why').innerHTML = '<span class="tag">' + tag + '</span>' + esc(q.options[oi].why);
     });
@@ -155,6 +196,7 @@
       (ok ? 'Correct! Here is why each of the other choices is off:'
           : 'Not quite. The correct answer is highlighted in green, with the explanation below.') + '</div>' +
       '<div class="recap"><b>Key takeaway:</b> ' + esc(q.takeaway) + '</div>' +
+      (q.concept ? '<div class="recap concept"><b>Concept to know:</b> ' + esc(q.concept) + '</div>' : '') +
       '<button class="btn primary" id="next">' + (last ? 'See results' : 'Next question →') + '</button>';
     document.getElementById('next').addEventListener('click', next);
     document.getElementById('fb').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -199,12 +241,15 @@
   /* ---------- keyboard: A–D or 1–4 to answer, Enter for next ---------- */
   document.addEventListener('keydown', function (e) {
     if (!session || e.ctrlKey || e.metaKey || e.altKey) return;
-    var k = '1234'.indexOf(e.key);
-    if (k === -1) k = 'abcd'.indexOf(String(e.key).toLowerCase());
+    var q = session.list[session.idx];
+    if (!q) return;
+    var n = q.options.length;
+    var k = '123456'.slice(0, n).indexOf(e.key);
+    if (k === -1) k = 'abcdef'.slice(0, n).indexOf(String(e.key).toLowerCase());
     if (k !== -1 && !session.answered) { pick(k); return; }
-    if (e.key === 'Enter' && session.answered) {
-      var n = document.getElementById('next');
-      if (n) { e.preventDefault(); n.click(); }
+    if (e.key === 'Enter') {
+      var btn = session.answered ? document.getElementById('next') : document.getElementById('submit');
+      if (btn && !btn.disabled) { e.preventDefault(); btn.click(); }
     }
   });
 

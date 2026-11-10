@@ -3560,5 +3560,1244 @@
       }
     ],
     "takeaway": "Separate retrieval metrics (relevance, coverage) from generation metrics (faithfulness, correctness)."
+  },
+  {
+    "id": 138,
+    "topic": "Data preparation (exam style)",
+    "topic_slug": "data-preparation-exam-style",
+    "level": "exam",
+    "question": "A retailer trains a sales-forecasting model on three years of daily data. A data scientist randomly splits the rows 80/20 into training and test sets. Test accuracy is excellent, but accuracy in production is much worse. What is the MOST likely cause and fix?",
+    "correct": 0,
+    "options": [
+      {
+        "text": "Random splitting let future rows leak into training; split chronologically so the test set is newer than the training set",
+        "why": "Correct. With time-ordered data, a random split puts neighbouring days in both sets, so the model has effectively seen the test period. Training on the past and testing on the future mimics production."
+      },
+      {
+        "text": "The dataset is too small; collect more years of daily history before retraining and re-testing the same model",
+        "why": "More data can help, but it does not explain a large gap between test and production results. The gap points to an unrealistic evaluation, not a lack of data."
+      },
+      {
+        "text": "The model underfits; increase model complexity and train for more epochs until training error reaches zero",
+        "why": "Underfitting would show poor accuracy on the test set too. Here the test score was excellent, so the problem is the evaluation design."
+      },
+      {
+        "text": "The features are unscaled; apply min-max normalization to every column before splitting the data randomly again",
+        "why": "Scaling can matter for some algorithms, but it does not create a gap between a leaky test set and production, and it keeps the random split that causes the leakage."
+      }
+    ],
+    "takeaway": "For time-series problems always split by time, never randomly.",
+    "concept": "Data leakage means information from outside the training window reaches the model, producing inflated offline metrics. Watch for it with time series, with features computed using future values, and with scalers or encoders fitted on the full dataset before splitting."
+  },
+  {
+    "id": 139,
+    "topic": "Data preparation (exam style)",
+    "topic_slug": "data-preparation-exam-style",
+    "level": "exam",
+    "question": "A team standardizes (zero mean, unit variance) all numeric columns of a 2 million row dataset, then splits it into training, validation and test sets. Validation scores look great but the model underperforms on new data. What should the team change?",
+    "correct": 0,
+    "options": [
+      {
+        "text": "Fit the scaler on the training set only, then apply that same fitted scaler to the validation and test sets",
+        "why": "Correct. The mean and standard deviation must come from training data alone. Computing them on everything lets test-set statistics leak into training."
+      },
+      {
+        "text": "Replace standardization with min-max scaling because standardization is known to inflate validation metrics",
+        "why": "Neither method inflates metrics by itself. Min-max scaling fitted on the full dataset would leak the minimum and maximum of the test set in the same way."
+      },
+      {
+        "text": "Fit a separate scaler on each of the three sets so every set has exactly zero mean and unit variance",
+        "why": "This makes the sets inconsistent. The model would see features transformed differently in training and at inference, and it still hides real distribution shifts."
+      },
+      {
+        "text": "Remove the scaling step completely, since scaling is only ever needed for tree-based algorithms like XGBoost",
+        "why": "It is the other way round: tree-based models are largely insensitive to scale, while linear models, k-NN, SVMs and neural networks benefit from it."
+      }
+    ],
+    "takeaway": "Fit preprocessing on training data only; transform validation, test and production data with the saved transformer.",
+    "concept": "Any learned preprocessing step (scaler, imputer, encoder, PCA) is part of the model. Fit it in the training split, persist it, and reuse it at inference, for example inside a SageMaker Pipeline processing step or an inference pipeline."
+  },
+  {
+    "id": 140,
+    "topic": "Data preparation (exam style)",
+    "topic_slug": "data-preparation-exam-style",
+    "level": "exam",
+    "question": "A feature contains 'annual income' with a long right tail: a few very large values dominate. A linear regression model is sensitive to these outliers and residuals are skewed. Which transformation is the BEST first step?",
+    "correct": 0,
+    "options": [
+      {
+        "text": "Apply a log transformation to compress the long tail and make the distribution closer to symmetric",
+        "why": "Correct. A log transform reduces right skew and the leverage of extreme values, which suits linear models. Use log1p if zeros are possible."
+      },
+      {
+        "text": "Apply one-hot encoding to the column so each distinct income value becomes its own binary feature",
+        "why": "One-hot encoding is for categorical variables. On a continuous column it creates a huge number of sparse columns and does nothing about skew."
+      },
+      {
+        "text": "Apply label encoding to the column so each income value is replaced by an integer rank",
+        "why": "Label encoding is also for categories and discards the magnitude information a regression needs."
+      },
+      {
+        "text": "Delete the column because outliers can never carry useful predictive information for a regression model",
+        "why": "Large incomes are often legitimate and very predictive. Dropping the feature throws away signal when a simple transformation would fix the skew."
+      }
+    ],
+    "takeaway": "Skewed numeric feature plus linear model: think log transform (or winsorizing), not categorical encoding.",
+    "concept": "Know your transforms: log/Box-Cox for skew, standardization for scale-sensitive algorithms, binning to turn a number into ordered groups, and winsorizing or clipping to cap outliers."
+  },
+  {
+    "id": 141,
+    "topic": "Data preparation (exam style)",
+    "topic_slug": "data-preparation-exam-style",
+    "level": "exam",
+    "question": "A feature 'zip_code' has about 40,000 distinct values and the target is binary. One-hot encoding creates a very wide, sparse matrix and training is slow. Which approach keeps most of the signal with far fewer columns?",
+    "correct": 0,
+    "options": [
+      {
+        "text": "Target (mean) encoding computed out-of-fold, replacing each zip code with a smoothed average of the target",
+        "why": "Correct. It produces one numeric column that carries the relationship to the target. Computing it out-of-fold with smoothing prevents target leakage and overfitting on rare categories."
+      },
+      {
+        "text": "Label encoding so each zip code becomes an arbitrary integer between 0 and 39,999 for a linear model",
+        "why": "The integers imply an order and distances that do not exist. A linear model would treat zip 90210 as 'bigger' than zip 10001, which is meaningless."
+      },
+      {
+        "text": "Keep one-hot encoding but train on a much larger instance type so the sparse matrix fits in memory",
+        "why": "This hides the problem with hardware. The curse of dimensionality still applies, and cost and training time rise."
+      },
+      {
+        "text": "Replace the column with its row index so every record has a unique value and cannot be grouped",
+        "why": "A row index carries no information about location, and a unique value per row invites overfitting."
+      }
+    ],
+    "takeaway": "High-cardinality categoricals: target encoding, hashing or learned embeddings instead of one-hot.",
+    "concept": "One-hot works for low cardinality. For thousands of levels choose target encoding (watch leakage), feature hashing, or embeddings learned by a neural network. Label encoding is only safe for tree models or truly ordinal data."
+  },
+  {
+    "id": 142,
+    "topic": "Data preparation (exam style)",
+    "topic_slug": "data-preparation-exam-style",
+    "level": "exam",
+    "question": "Each month an analyst must profile a 500 GB customer dataset, find columns with high null rates and duplicates, apply cleaning recipes and write the result to S3. The analyst does not write code. Which AWS service is the BEST fit?",
+    "correct": 0,
+    "options": [
+      {
+        "text": "AWS Glue DataBrew, using a visual data profile job and a recipe of cleaning transforms",
+        "why": "Correct. DataBrew is a no-code, visual data preparation service with data profiling, over 250 built-in transforms, data quality rules and recipe jobs that write to S3."
+      },
+      {
+        "text": "Amazon Athena, writing SQL CTAS statements to cleanse each column and write the output to S3",
+        "why": "Athena can transform data with SQL, but the analyst does not write code, and Athena has no profiling or visual recipe feature."
+      },
+      {
+        "text": "AWS Glue streaming ETL, running a Spark Structured Streaming job against the S3 bucket continuously",
+        "why": "Streaming ETL is for continuous sources such as Kinesis or Kafka, and requires code. This is a monthly batch job."
+      },
+      {
+        "text": "Amazon EMR with a long-running Spark cluster, running a PySpark script to profile and clean the data",
+        "why": "EMR works but needs a cluster and code, which is the opposite of the no-code, low-operations requirement."
+      }
+    ],
+    "takeaway": "No-code data cleaning and profiling: Glue DataBrew (visual) or SageMaker Data Wrangler (ML-focused).",
+    "concept": "Data Wrangler is aimed at ML feature prep inside SageMaker Studio and exports to Pipelines or Feature Store. DataBrew is a general data-prep service for analysts. Glue ETL jobs need code (Spark, Python)."
+  },
+  {
+    "id": 143,
+    "topic": "Data preparation (exam style)",
+    "topic_slug": "data-preparation-exam-style",
+    "level": "exam",
+    "question": "Clickstream events arrive continuously from a website. The data must be buffered, converted to Parquet and delivered to S3 for later model training, with no servers to manage and minimal code. Which service handles this?",
+    "correct": 0,
+    "options": [
+      {
+        "text": "Amazon Data Firehose (Kinesis Data Firehose) with record format conversion to Parquet and an S3 destination",
+        "why": "Correct. Firehose is fully managed, buffers by size or time, can convert JSON to Parquet or ORC using a Glue Data Catalog schema, and delivers to S3."
+      },
+      {
+        "text": "Amazon Kinesis Data Streams with a custom consumer application that writes Parquet files to S3",
+        "why": "This works, but you must build and operate the consumer, which fails the minimal code and no servers requirement."
+      },
+      {
+        "text": "Amazon SQS standard queue with a Lambda function that writes each message to S3 as a Parquet file",
+        "why": "SQS is a message queue, not a streaming delivery service. Writing one file per message creates many tiny objects and extra code."
+      },
+      {
+        "text": "AWS DMS replication task from the web servers to S3 using change data capture on the event logs",
+        "why": "DMS migrates and replicates databases. Clickstream events from a website are not a database change feed."
+      }
+    ],
+    "takeaway": "Streaming to S3 with format conversion and no code: Amazon Data Firehose.",
+    "concept": "Kinesis Data Streams gives you replay and custom consumers (you manage scaling in provisioned mode). Firehose is delivery-only, near-real-time, and supports transformation via Lambda plus Parquet/ORC conversion."
+  },
+  {
+    "id": 144,
+    "topic": "Data preparation (exam style)",
+    "topic_slug": "data-preparation-exam-style",
+    "level": "exam",
+    "question": "A dataset of customer churn has 2% positive labels. The team wants to improve recall on the minority class during preprocessing and training of an XGBoost model on SageMaker. Which TWO actions address the imbalance?",
+    "correct": [
+      0,
+      1
+    ],
+    "options": [
+      {
+        "text": "Set the scale_pos_weight hyperparameter to roughly the ratio of negative to positive examples",
+        "why": "Correct. scale_pos_weight increases the penalty for misclassifying the positive class, which helps with imbalanced binary data."
+      },
+      {
+        "text": "Oversample the minority class in the training set only, for example with SMOTE, before training",
+        "why": "Correct. Oversampling or synthetic generation balances the classes the model sees. Apply it only to the training split so test data keeps the true distribution."
+      },
+      {
+        "text": "Judge model quality using overall accuracy so the majority class performance dominates the result",
+        "why": "Accuracy hides the problem: predicting 'no churn' for everyone scores 98%. Use precision, recall, F1 or PR-AUC."
+      },
+      {
+        "text": "Remove half of the positive examples so the model is not biased by too many churners in training",
+        "why": "Removing minority examples makes the imbalance worse and throws away the very data you need."
+      },
+      {
+        "text": "Apply SMOTE to the complete dataset before the train and test split to maximise the number of samples",
+        "why": "This leaks synthetic neighbours of test points into training, inflating results. Resample after the split."
+      }
+    ],
+    "takeaway": "Imbalance: class weights and resampling (training data only), measured with recall, precision, F1 or PR-AUC.",
+    "concept": "Other levers: undersample the majority class, adjust the decision threshold, or use cost-sensitive learning. SageMaker Data Wrangler also offers balancing transforms such as random oversample and SMOTE."
+  },
+  {
+    "id": 145,
+    "topic": "Data preparation (exam style)",
+    "topic_slug": "data-preparation-exam-style",
+    "level": "exam",
+    "question": "A bank's training data is highly confidential and must be labelled by employees only; the labelling job should also reduce cost by automating labels the model is confident about. Which configuration of Amazon SageMaker Ground Truth fits?",
+    "correct": 0,
+    "options": [
+      {
+        "text": "A private workforce with automated data labeling (active learning) enabled",
+        "why": "Correct. A private workforce limits access to your own employees, and automated data labeling trains a model that labels high-confidence items while sending uncertain ones to humans."
+      },
+      {
+        "text": "Mechanical Turk public workforce with automated data labeling disabled to keep the cost predictable",
+        "why": "A public workforce means the data is exposed to anonymous workers, which violates the confidentiality requirement."
+      },
+      {
+        "text": "A vendor workforce from AWS Marketplace with no automated labeling so vendors can review every item",
+        "why": "Vendors are external parties and may not be approved for confidential data. It also gives up the cost reduction from active learning."
+      },
+      {
+        "text": "Amazon Rekognition Custom Labels, which labels the data automatically without any human review at all",
+        "why": "Rekognition Custom Labels trains image models. It is not a labeling workflow tool and gives no human review."
+      }
+    ],
+    "takeaway": "Confidential data: private workforce. Lower labeling cost: automated labeling (active learning).",
+    "concept": "Ground Truth workforces: Amazon Mechanical Turk (public), private (your employees), vendor (Marketplace). Automated labeling needs a minimum dataset size and works for supported task types."
+  },
+  {
+    "id": 146,
+    "topic": "Model training & evaluation",
+    "topic_slug": "model-training-and-evaluation",
+    "level": "exam",
+    "question": "A fraud-detection model scores 99.7% accuracy on a test set in which only 0.3% of transactions are fraudulent, yet it catches almost no fraud. Which metric should the team use to evaluate and tune the model instead?",
+    "correct": 0,
+    "options": [
+      {
+        "text": "Precision-recall AUC (or F1 / recall for the fraud class), which focuses on the minority positive class",
+        "why": "Correct. When positives are rare, PR-AUC, recall, precision and F1 reflect how well the minority class is found. Accuracy is dominated by the majority class."
+      },
+      {
+        "text": "Overall accuracy, because a value of 99.7% already shows the model separates the two classes well",
+        "why": "A model that always predicts 'not fraud' also scores about 99.7%. High accuracy here says nothing about finding fraud."
+      },
+      {
+        "text": "Root mean squared error, which measures how far each predicted probability is from the true value",
+        "why": "RMSE is a regression metric. It can be computed on probabilities, but it does not address the imbalance and is not the standard for classification."
+      },
+      {
+        "text": "R-squared, which shows the proportion of variance in the fraud label explained by the model",
+        "why": "R-squared is a regression metric and is not meaningful for evaluating a binary classifier on imbalanced data."
+      }
+    ],
+    "takeaway": "Imbalanced classification: use precision, recall, F1 or PR-AUC, not accuracy.",
+    "concept": "Precision = TP/(TP+FP), recall = TP/(TP+FN), F1 is their harmonic mean. ROC-AUC can look optimistic on heavily imbalanced data; PR-AUC is more informative when the positive class is rare."
+  },
+  {
+    "id": 147,
+    "topic": "Model training & evaluation",
+    "topic_slug": "model-training-and-evaluation",
+    "level": "exam",
+    "question": "A churn model is used to trigger a retention offer. Missing a real churner (false negative) costs far more than sending an unnecessary offer (false positive). The model outputs a probability. What should the engineer do?",
+    "correct": 0,
+    "options": [
+      {
+        "text": "Lower the classification threshold below 0.5 so more customers are flagged, accepting more false positives",
+        "why": "Correct. Lowering the threshold raises recall (fewer false negatives) at the cost of precision. Pick the threshold from the precision-recall trade-off and the business costs."
+      },
+      {
+        "text": "Raise the classification threshold above 0.5 so that only the most certain churners are ever flagged",
+        "why": "This does the opposite: fewer customers are flagged, so more real churners are missed. It raises precision and lowers recall."
+      },
+      {
+        "text": "Switch the evaluation metric to precision and keep the default 0.5 threshold for the endpoint",
+        "why": "Optimising precision favours avoiding false positives, the cheaper error here. The business needs recall."
+      },
+      {
+        "text": "Retrain with fewer features until the model's probabilities are all exactly either 0 or 1 for all customers",
+        "why": "Forcing hard 0/1 outputs removes the ability to tune the threshold and generally hurts calibration and accuracy."
+      }
+    ],
+    "takeaway": "When false negatives are costly, favour recall by lowering the decision threshold.",
+    "concept": "The confusion matrix links errors to cost. Fraud, disease screening and churn usually favour recall. Spam filters or automated account bans often favour precision. The threshold is a business decision applied after training."
+  },
+  {
+    "id": 148,
+    "topic": "Model training & evaluation",
+    "topic_slug": "model-training-and-evaluation",
+    "level": "exam",
+    "question": "During training of a deep network, training loss keeps falling while validation loss starts rising after epoch 12. Which TWO actions are the most appropriate to reduce this overfitting?",
+    "correct": [
+      0,
+      1
+    ],
+    "options": [
+      {
+        "text": "Add regularization such as dropout or L2 weight decay",
+        "why": "Correct. Regularization limits the model's capacity to memorise the training data."
+      },
+      {
+        "text": "Enable early stopping on validation loss and keep the best checkpoint",
+        "why": "Correct. Training stops once validation performance stops improving, preventing further overfitting."
+      },
+      {
+        "text": "Add more layers and neurons so the network can fit the training data even more closely",
+        "why": "A larger network has more capacity and typically overfits more."
+      },
+      {
+        "text": "Train for many more epochs so validation loss has time to come back down eventually",
+        "why": "Divergence of training and validation loss is the classic overfitting signature. More epochs usually widen the gap."
+      },
+      {
+        "text": "Merge the validation set into the training set so the model sees more data during every epoch",
+        "why": "You would lose the only signal that reveals overfitting, and metrics would no longer be trustworthy."
+      }
+    ],
+    "takeaway": "Training loss down, validation loss up means overfitting: regularize, stop early, add data or simplify the model.",
+    "concept": "Underfitting (both losses high) calls for more capacity, better features or longer training. Overfitting (big gap) calls for regularization, dropout, early stopping, data augmentation, more data, or fewer features."
+  },
+  {
+    "id": 149,
+    "topic": "Model training & evaluation",
+    "topic_slug": "model-training-and-evaluation",
+    "level": "exam",
+    "question": "A regression model predicts delivery times. Occasional very late deliveries are far more harmful to the business than many small errors, so large errors must be penalized more heavily during evaluation. Which metric is the BEST choice?",
+    "correct": 0,
+    "options": [
+      {
+        "text": "Root mean squared error (RMSE), because squaring the errors penalizes large mistakes disproportionately",
+        "why": "Correct. Squaring makes one 60-minute miss count far more than several 5-minute misses."
+      },
+      {
+        "text": "Mean absolute error (MAE), because it weights each error in direct proportion to its size",
+        "why": "MAE treats errors linearly and is more robust to outliers. That is the opposite of the requirement."
+      },
+      {
+        "text": "Accuracy, defined as the percentage of predictions that exactly equal the true delivery time",
+        "why": "Accuracy is a classification metric. Exact matches on a continuous value are almost never achieved."
+      },
+      {
+        "text": "Area under the ROC curve, which summarises discrimination across every possible classification threshold",
+        "why": "AUC applies to classifiers with a probability output, not to a continuous regression target."
+      }
+    ],
+    "takeaway": "RMSE punishes large errors; MAE is robust to outliers.",
+    "concept": "Regression metrics: MSE/RMSE (sensitive to outliers), MAE (robust), R-squared (variance explained). Classification metrics: accuracy, precision, recall, F1, ROC-AUC, PR-AUC, log loss."
+  },
+  {
+    "id": 150,
+    "topic": "Model training & evaluation",
+    "topic_slug": "model-training-and-evaluation",
+    "level": "exam",
+    "question": "A team has only 2,500 labelled product photos and needs a high-accuracy image classifier within days. Training a CNN from scratch gives poor results. What approach should they take?",
+    "correct": 0,
+    "options": [
+      {
+        "text": "Fine-tune a pre-trained image model (transfer learning), for example from SageMaker JumpStart",
+        "why": "Correct. A pre-trained network already knows general visual features. Fine-tuning on a small labelled set is fast and usually far more accurate than training from scratch."
+      },
+      {
+        "text": "Train a much deeper CNN from random weights for several hundred epochs until training accuracy hits 100%",
+        "why": "With 2,500 images a deeper network from random weights will overfit badly. Perfect training accuracy is a warning sign."
+      },
+      {
+        "text": "Use SageMaker Linear Learner on the raw pixel values flattened into one long feature vector per image",
+        "why": "Flattened pixels discard spatial structure, and a linear model cannot learn visual patterns well."
+      },
+      {
+        "text": "Use the Semantic Segmentation algorithm, which classifies every pixel instead of the whole image",
+        "why": "Semantic segmentation produces per-pixel labels and needs far more detailed annotation. The task is image-level classification."
+      }
+    ],
+    "takeaway": "Small labelled dataset plus deep learning: transfer learning from a pre-trained model.",
+    "concept": "JumpStart provides pre-trained models and solution templates for fine-tuning. The same idea applies to NLP (fine-tune a pre-trained transformer) and to foundation models (fine-tune or continue pre-training in Bedrock)."
+  },
+  {
+    "id": 151,
+    "topic": "Model training & evaluation",
+    "topic_slug": "model-training-and-evaluation",
+    "level": "exam",
+    "question": "A SageMaker training job uses a very large S3 dataset (several TB). The team wants training to begin quickly without downloading the entire dataset to the instance first, while keeping file-system style access to the files. Which input mode should they choose?",
+    "correct": 0,
+    "options": [
+      {
+        "text": "FastFile mode, which streams S3 objects on demand and exposes them as local files",
+        "why": "Correct. FastFile gives POSIX-like access to S3 objects, starts training without waiting for a full download, and needs little code change."
+      },
+      {
+        "text": "File mode, which copies the whole dataset from S3 to the instance's storage before training starts",
+        "why": "File mode is the default and the slow-start option. With multiple TB the download delays the start and needs a large volume."
+      },
+      {
+        "text": "Pipe mode, which streams data sequentially and requires the training code to read from a named pipe",
+        "why": "Pipe mode also avoids the full download, but it is sequential-only and requires pipe-reading code. The requirement of file-system style access favours FastFile."
+      },
+      {
+        "text": "Copy the dataset into the container image at build time so it ships with the training code in ECR",
+        "why": "Baking terabytes into an image is impractical, bloats pushes and pulls, and breaks the separation between code and data."
+      }
+    ],
+    "takeaway": "Large S3 datasets: FastFile or Pipe mode instead of File mode; Amazon FSx for Lustre for repeated high-throughput access.",
+    "concept": "Input modes: File (download first), FastFile (lazy streaming with file semantics), Pipe (sequential stream). FSx for Lustre or EFS data sources help when many jobs reuse the same data."
+  },
+  {
+    "id": 152,
+    "topic": "Model training & evaluation",
+    "topic_slug": "model-training-and-evaluation",
+    "level": "exam",
+    "question": "A training job runs for 14 hours, is fault tolerant and is not time-critical. The team wants to cut training cost significantly without losing progress if capacity is reclaimed. Which design is BEST?",
+    "correct": 0,
+    "options": [
+      {
+        "text": "Managed Spot Training with checkpointing to Amazon S3 so interrupted jobs resume from the last checkpoint",
+        "why": "Correct. Spot capacity can reduce training cost by up to about 90%. Checkpoints in S3 let SageMaker resume after an interruption."
+      },
+      {
+        "text": "On-demand instances with a Compute Savings Plan applied to a single 14 hour job that runs once a month",
+        "why": "Savings Plans suit steady, predictable usage. A single monthly job does not use enough hours to benefit much."
+      },
+      {
+        "text": "A smaller instance type, so the job takes several days but each hourly rate is as low as possible",
+        "why": "A longer run can cost the same or more in total and delays results. It also doesn't address interruption or the unit price."
+      },
+      {
+        "text": "Spot instances without checkpoints, restarting the job from epoch 0 whenever capacity is reclaimed",
+        "why": "Interruptions would repeatedly discard hours of progress and could make the job cost more than on-demand."
+      }
+    ],
+    "takeaway": "Interruptible, flexible training: managed Spot Training with S3 checkpoints.",
+    "concept": "Set use_spot_instances, a max_wait at least as large as max_run, and a checkpoint_s3_uri. Your code must save and load checkpoints. Not suitable for latency-critical inference endpoints."
+  },
+  {
+    "id": 153,
+    "topic": "Model training & evaluation",
+    "topic_slug": "model-training-and-evaluation",
+    "level": "exam",
+    "question": "A training job's loss stops decreasing and the job keeps consuming GPU hours. The team wants SageMaker to detect problems such as vanishing gradients or a loss that is not decreasing and automatically stop the job. Which feature should they use?",
+    "correct": 0,
+    "options": [
+      {
+        "text": "SageMaker Debugger built-in rules with a stop-training action",
+        "why": "Correct. Debugger collects tensors and metrics during training and evaluates rules such as vanishing_gradient and loss_not_decreasing. A rule can trigger an action such as stopping the job."
+      },
+      {
+        "text": "Amazon CloudWatch Logs Insights queries run manually after the job completes, to review the loss values",
+        "why": "This is after-the-fact and manual. It cannot detect training-specific problems in real time or stop the job."
+      },
+      {
+        "text": "SageMaker Model Monitor data quality schedule attached to the training job's output location in S3",
+        "why": "Model Monitor watches deployed endpoints and batch inference data, not the internal state of a training job."
+      },
+      {
+        "text": "AWS CloudTrail data events for the S3 bucket, filtered for the training job's checkpoint writes",
+        "why": "CloudTrail records API activity for auditing. It does not understand gradients or loss."
+      }
+    ],
+    "takeaway": "Detect and stop bad training runs automatically: SageMaker Debugger rules.",
+    "concept": "Debugger can also profile CPU/GPU utilisation to find bottlenecks. Do not confuse it with Model Monitor (production drift), Clarify (bias and explainability) or Experiments (tracking runs)."
+  },
+  {
+    "id": 154,
+    "topic": "Model training & evaluation",
+    "topic_slug": "model-training-and-evaluation",
+    "level": "exam",
+    "question": "A data scientist must tune 8 hyperparameters for an XGBoost model. Each training run is expensive. Which SageMaker Automatic Model Tuning strategy usually finds good values with the FEWEST training jobs?",
+    "correct": 0,
+    "options": [
+      {
+        "text": "Bayesian optimization, which uses results of earlier jobs to choose the next hyperparameter values",
+        "why": "Correct. Bayesian search models the objective as a function of the hyperparameters and picks promising points, so it typically needs far fewer runs than random or grid search."
+      },
+      {
+        "text": "Grid search, which trains a job for every combination of the values supplied for each hyperparameter",
+        "why": "The number of combinations explodes with 8 hyperparameters. Grid search is the most expensive approach and only supports categorical values."
+      },
+      {
+        "text": "Random search with very high parallelism so that all trials start at the same time",
+        "why": "Random search does not learn from earlier results, so it needs more trials. High parallelism also removes the learning benefit of sequential strategies."
+      },
+      {
+        "text": "Manually trying values in a notebook and noting the best result, one training job at a time",
+        "why": "This is slow, hard to reproduce and does not use the service's search or early stopping."
+      }
+    ],
+    "takeaway": "Fewest expensive trials: Bayesian optimization (and early stopping or Hyperband).",
+    "concept": "Strategies: Grid, Random, Bayesian, Hyperband. Using lower parallelism lets Bayesian learn more between batches. Warm start reuses results from previous tuning jobs."
+  },
+  {
+    "id": 155,
+    "topic": "Deployment & inference endpoints",
+    "topic_slug": "deployment-and-inference-endpoints",
+    "level": "exam",
+    "question": "A model is used by an internal tool a few times per day, with long idle gaps. The model is under 3 GB and the team accepts a cold start of several seconds. They want to pay only for compute used and manage no instances. Which hosting option fits?",
+    "correct": 0,
+    "options": [
+      {
+        "text": "SageMaker Serverless Inference",
+        "why": "Correct. Serverless Inference scales to zero, bills per use, and suits intermittent traffic that tolerates cold starts. Memory is configured up to 6 GB."
+      },
+      {
+        "text": "A SageMaker real-time endpoint on a ml.m5.xlarge instance that runs continuously",
+        "why": "Real-time endpoints bill for every hour the instance runs, including idle time, so this is wasteful for a few daily calls."
+      },
+      {
+        "text": "A SageMaker batch transform job started manually each morning for all the previous day's requests",
+        "why": "Batch transform is for offline scoring of large datasets. The tool needs responses to individual requests when users call it."
+      },
+      {
+        "text": "A SageMaker multi-model endpoint with auto scaling set to a minimum of two instances at all times",
+        "why": "Multi-model endpoints are for hosting many models on shared instances. A minimum of two instances means paying continuously."
+      }
+    ],
+    "takeaway": "Intermittent traffic, tolerates cold starts, no infrastructure: Serverless Inference.",
+    "concept": "Know the four options: Real-time (low latency, always on), Serverless (spiky or rare traffic, cold starts), Asynchronous (large payloads, long processing, queued) and Batch Transform (offline datasets)."
+  },
+  {
+    "id": 156,
+    "topic": "Deployment & inference endpoints",
+    "topic_slug": "deployment-and-inference-endpoints",
+    "level": "exam",
+    "question": "An application sends 800 MB satellite images to a model. Each inference takes about 8 minutes, and callers can pick up results later. Which SageMaker inference option is designed for this?",
+    "correct": 0,
+    "options": [
+      {
+        "text": "Asynchronous inference, which queues requests, accepts large payloads and writes results to Amazon S3",
+        "why": "Correct. Async endpoints support payloads up to 1 GB and processing times up to 1 hour, queue requests, and can scale to zero when idle."
+      },
+      {
+        "text": "Real-time inference, which provides an HTTPS endpoint with synchronous responses within a single request",
+        "why": "Real-time endpoints limit the payload to tens of MB at most and the invocation to about 60 seconds (check the current quotas). 800 MB and 8 minutes exceed both."
+      },
+      {
+        "text": "Serverless inference, which scales automatically between zero and the configured maximum concurrency",
+        "why": "Serverless inference has smaller payload and timeout limits (about 4 MB payload and 60-second timeout), so it cannot take this workload."
+      },
+      {
+        "text": "A multi-container endpoint that runs the preprocessing and model containers one after the other",
+        "why": "Multi-container endpoints are about packaging several containers. They don't change the payload or timeout limits of real-time inference."
+      }
+    ],
+    "takeaway": "Large payloads (up to 1 GB) and long processing (up to 1 hour): asynchronous inference.",
+    "concept": "Remember the limits. Real-time: payload in the MB range and a ~60 s timeout (check current quotas). Serverless: ~4 MB, 60 s. Async: 1 GB, 1 h. Batch Transform: whole datasets, no endpoint. Async can notify through SNS when a result is ready."
+  },
+  {
+    "id": 157,
+    "topic": "Deployment & inference endpoints",
+    "topic_slug": "deployment-and-inference-endpoints",
+    "level": "exam",
+    "question": "Each night, a retailer must score 200 million records stored in Amazon S3 and write the predictions back to S3. No real-time response is needed and the team does not want to keep an endpoint running. What should they use?",
+    "correct": 0,
+    "options": [
+      {
+        "text": "SageMaker Batch Transform job reading the input prefix from S3 and writing predictions to an output prefix",
+        "why": "Correct. Batch Transform provisions compute for the job, processes the whole dataset, writes results to S3 and shuts down, so there is no idle endpoint cost."
+      },
+      {
+        "text": "A SageMaker real-time endpoint with auto scaling, called in a loop by a script for each record",
+        "why": "It works but is wasteful: 200 million synchronous calls, an always-on endpoint and custom throttling code."
+      },
+      {
+        "text": "A SageMaker asynchronous endpoint receiving each of the 200 million records as a separate request",
+        "why": "Async inference is for individual large or slow requests. Queueing hundreds of millions of tiny requests adds overhead and cost."
+      },
+      {
+        "text": "Amazon Bedrock on-demand inference called by a Lambda function for each record in the dataset",
+        "why": "Bedrock hosts foundation models. It is not the way to score a custom tabular model in bulk."
+      }
+    ],
+    "takeaway": "Offline, bulk scoring from S3 with no endpoint: Batch Transform.",
+    "concept": "You can tune Batch Transform with MaxPayloadInMB, BatchStrategy (MultiRecord vs SingleRecord) and the instance count for parallelism. Use input filtering and join options to attach inputs to outputs."
+  },
+  {
+    "id": 158,
+    "topic": "Deployment & inference endpoints",
+    "topic_slug": "deployment-and-inference-endpoints",
+    "level": "exam",
+    "question": "A SaaS company serves 600 per-customer models, all built with the same framework. Most models are rarely invoked. The company wants to cut hosting cost without running 600 endpoints. Which option is BEST?",
+    "correct": 0,
+    "options": [
+      {
+        "text": "A SageMaker multi-model endpoint that loads models from S3 on demand into shared instances",
+        "why": "Correct. A multi-model endpoint shares one fleet and container across many models of the same framework, loading them into memory when invoked and evicting idle ones."
+      },
+      {
+        "text": "A multi-container endpoint with direct invocation of up to 15 containers, one per model",
+        "why": "Multi-container endpoints host a small number (up to 15) of different containers. 600 models far exceeds that limit, and models would not be loaded on demand."
+      },
+      {
+        "text": "600 separate real-time endpoints, each with one instance, to isolate each customer's model completely",
+        "why": "Isolation is simple but the cost scales with the number of endpoints, regardless of use."
+      },
+      {
+        "text": "One batch transform job per customer scheduled every five minutes to approximate real-time predictions",
+        "why": "Batch jobs add latency and start-up overhead per run, and they are not designed to simulate real-time responses."
+      }
+    ],
+    "takeaway": "Many similar, rarely used models: multi-model endpoint (same framework). Few different frameworks: multi-container endpoint.",
+    "concept": "Multi-model endpoints trade a slower first call (cold load) for much lower cost. Choose multi-container endpoints when models use different frameworks or when you need a serial inference pipeline."
+  },
+  {
+    "id": 159,
+    "topic": "Deployment & inference endpoints",
+    "topic_slug": "deployment-and-inference-endpoints",
+    "level": "exam",
+    "question": "A team wants to test a new model version on live production requests and compare its predictions with the current model, but customers must only ever receive responses from the current model. Which SageMaker capability should they use?",
+    "correct": 0,
+    "options": [
+      {
+        "text": "Shadow variants (shadow testing), which mirror a copy of production traffic to the new variant",
+        "why": "Correct. The shadow variant receives a copy of live requests, its responses are logged for comparison but not returned to callers, so users are unaffected."
+      },
+      {
+        "text": "Production variants with a 90/10 weighted traffic split between the current and the new model",
+        "why": "In a weighted split the new model's responses are actually returned to 10% of customers, which violates the requirement."
+      },
+      {
+        "text": "A blue/green deployment that immediately shifts all traffic to the new model once it is healthy",
+        "why": "That switches every customer to the new model instead of only comparing it."
+      },
+      {
+        "text": "Batch Transform on last week's data followed by a manual comparison of the output files in S3",
+        "why": "Offline testing doesn't use live production traffic and cannot reveal real-time behaviour like latency under load."
+      }
+    ],
+    "takeaway": "Validate a new model on real traffic with zero customer impact: shadow testing.",
+    "concept": "Rollout patterns: shadow (compare silently), A/B via weighted production variants (users affected), canary or linear blue/green deployment guardrails (gradual shift with automatic rollback)."
+  },
+  {
+    "id": 160,
+    "topic": "Deployment & inference endpoints",
+    "topic_slug": "deployment-and-inference-endpoints",
+    "level": "exam",
+    "question": "A new model version will replace a live endpoint. The team wants traffic shifted gradually (first a small percentage) and an automatic rollback if a CloudWatch alarm on 5XX errors fires. Which approach meets this?",
+    "correct": 0,
+    "options": [
+      {
+        "text": "SageMaker deployment guardrails: blue/green deployment with canary traffic shifting and CloudWatch alarms",
+        "why": "Correct. Deployment guardrails support all-at-once, canary and linear traffic shifting, and roll back automatically if the specified alarms go into alarm."
+      },
+      {
+        "text": "Update the endpoint configuration in place and watch the dashboard, rolling back manually if errors appear",
+        "why": "No automatic rollback and no gradual shift. Human reaction time exposes customers to more failures."
+      },
+      {
+        "text": "Delete the existing endpoint and create a new one with the new model during a scheduled maintenance window",
+        "why": "This causes downtime and has no gradual rollout or rollback."
+      },
+      {
+        "text": "Use SageMaker Model Monitor to compare input data to the training baseline and block unusual requests",
+        "why": "Model Monitor detects drift in data or quality over time. It does not control deployment traffic or roll back endpoints."
+      }
+    ],
+    "takeaway": "Safe, gradual rollout with automatic rollback: blue/green with canary or linear shifting plus CloudWatch alarms.",
+    "concept": "Alarms commonly watch Invocation5XXErrors, ModelLatency or OverheadLatency. The old fleet (blue) is kept during a baking period so rollback is instant."
+  },
+  {
+    "id": 161,
+    "topic": "Deployment & inference endpoints",
+    "topic_slug": "deployment-and-inference-endpoints",
+    "level": "exam",
+    "question": "A company cannot decide which instance type and count will give the best latency and cost for its model before launching. They want load-test-based recommendations without hand-writing tests. What should they use?",
+    "correct": 0,
+    "options": [
+      {
+        "text": "SageMaker Inference Recommender",
+        "why": "Correct. Inference Recommender runs load tests across instance types and returns recommended instance types and endpoint configurations based on latency, throughput and cost."
+      },
+      {
+        "text": "SageMaker Neo, which recompiles the model to run on the instance type with the lowest hourly rate",
+        "why": "Neo compiles and optimizes a model for a target hardware platform. It does not benchmark and select instance types for you."
+      },
+      {
+        "text": "SageMaker Debugger profiling on the training job's instance, to infer the best serving instance type",
+        "why": "Debugger profiles training resource usage. Training hardware needs differ from the needs of inference serving."
+      },
+      {
+        "text": "AWS Compute Optimizer applied to an empty endpoint that has not received any inference traffic yet",
+        "why": "Compute Optimizer needs historical utilization metrics. An endpoint with no traffic has none to analyse."
+      }
+    ],
+    "takeaway": "Right-size an endpoint with load testing: SageMaker Inference Recommender.",
+    "concept": "It has an instance recommendations (quick) job and an endpoint recommendations (custom load test) job. Pair it with auto scaling and cost allocation tags to control spend."
+  },
+  {
+    "id": 162,
+    "topic": "Deployment & inference endpoints",
+    "topic_slug": "deployment-and-inference-endpoints",
+    "level": "exam",
+    "question": "A real-time SageMaker endpoint has variable traffic. The team wants instance count to follow request volume using a predefined metric. Which scaling configuration is MOST appropriate?",
+    "correct": 0,
+    "options": [
+      {
+        "text": "Application Auto Scaling target tracking on the SageMakerVariantInvocationsPerInstance metric",
+        "why": "Correct. Target tracking on invocations per instance is the recommended predefined metric: the service adds or removes instances to keep the per-instance rate near the target."
+      },
+      {
+        "text": "An Auto Scaling group of EC2 instances behind a load balancer that runs the SageMaker container",
+        "why": "SageMaker endpoints scale through Application Auto Scaling on the endpoint variant. Building your own EC2 fleet abandons the managed service."
+      },
+      {
+        "text": "A scheduled Lambda function that changes the instance count by hand every hour based on a guess",
+        "why": "Not responsive to actual traffic. This is manual, brittle and can under- or over-provision."
+      },
+      {
+        "text": "Setting the maximum instance count high and never scaling in, to avoid any risk of throttled requests",
+        "why": "This pays for peak capacity at all times and defeats the purpose of auto scaling."
+      }
+    ],
+    "takeaway": "Real-time endpoint scaling: Application Auto Scaling, target tracking on invocations per instance.",
+    "concept": "Tune scale-in and scale-out cooldowns to avoid thrashing. Serverless endpoints scale on their own; async endpoints can scale based on queue backlog and down to zero."
+  },
+  {
+    "id": 163,
+    "topic": "Deployment & inference endpoints",
+    "topic_slug": "deployment-and-inference-endpoints",
+    "level": "exam",
+    "question": "A manufacturer must run an image model on thousands of low-power ARM cameras in factories. The model must run efficiently on that hardware with a small footprint. Which service helps prepare the model?",
+    "correct": 0,
+    "options": [
+      {
+        "text": "Amazon SageMaker Neo, which compiles and optimizes the model for a specific target hardware platform",
+        "why": "Correct. Neo compiles trained models from common frameworks for target edge devices and cloud instances, reducing size and latency. It pairs well with IoT Greengrass or SageMaker Edge tooling for deployment."
+      },
+      {
+        "text": "Amazon SageMaker Batch Transform, which processes the camera images in large groups in the cloud",
+        "why": "That keeps inference in the cloud. The requirement is to run on the cameras themselves."
+      },
+      {
+        "text": "SageMaker Model Monitor scheduled on every camera to compare the live images with a baseline",
+        "why": "Monitoring checks data and quality on endpoints. It doesn't optimize a model to run on constrained hardware."
+      },
+      {
+        "text": "Amazon Rekognition image analysis called by every camera over the factory network for each frame",
+        "why": "This is a cloud API, not an on-device model. It needs connectivity and would send every frame to the cloud."
+      }
+    ],
+    "takeaway": "Edge deployment of trained models: compile with SageMaker Neo, deploy with IoT Greengrass.",
+    "concept": "Neo supports TensorFlow, PyTorch, MXNet, XGBoost and others, and targets processors from ARM, Intel, NVIDIA and more. It optimizes the model; it doesn't train it."
+  },
+  {
+    "id": 164,
+    "topic": "MLOps, monitoring & drift",
+    "topic_slug": "mlops-monitoring-and-drift",
+    "level": "exam",
+    "question": "A deployed model's business metrics are slowly worsening. The team suspects the distribution of incoming features has changed since training. Which SageMaker capability detects this?",
+    "correct": 0,
+    "options": [
+      {
+        "text": "SageMaker Model Monitor data quality monitoring, comparing live inputs against a baseline from the training data",
+        "why": "Correct. Model Monitor generates baseline statistics and constraints from training data, captures endpoint inputs, and reports violations such as feature drift on a schedule."
+      },
+      {
+        "text": "SageMaker Debugger rules attached to the production endpoint to watch gradients as predictions are served",
+        "why": "Debugger works on training jobs. An endpoint serving predictions has no gradients to inspect."
+      },
+      {
+        "text": "SageMaker Ground Truth, which relabels a sample of the production inputs to refresh the training set",
+        "why": "Ground Truth creates labels. It doesn't detect drift in feature distributions by itself."
+      },
+      {
+        "text": "Amazon CloudWatch alarms on CPUUtilization of the endpoint instance to catch changes in the input data",
+        "why": "CPU metrics show infrastructure load, not changes in the statistical properties of the input features."
+      }
+    ],
+    "takeaway": "Feature or input drift: Model Monitor data quality against a training baseline.",
+    "concept": "Model Monitor has four types: data quality, model quality (needs ground truth), bias drift and feature attribution drift (both via Clarify). Enable data capture on the endpoint first."
+  },
+  {
+    "id": 165,
+    "topic": "MLOps, monitoring & drift",
+    "topic_slug": "mlops-monitoring-and-drift",
+    "level": "exam",
+    "question": "A fraud model is monitored in production. Ground-truth labels (confirmed fraud or not) arrive from the investigations team two weeks after each prediction. The team wants to track accuracy, precision and recall over time. What should they configure?",
+    "correct": 0,
+    "options": [
+      {
+        "text": "Model Monitor model quality monitoring, merging captured predictions with the ground-truth labels stored in S3",
+        "why": "Correct. Model quality monitoring joins prediction data with ground-truth data (with a shared inference ID) and computes metrics, then compares them to baseline constraints."
+      },
+      {
+        "text": "Data quality monitoring only, because it can compute accuracy directly from the input features without labels",
+        "why": "Data quality checks statistics of inputs, not prediction accuracy. Accuracy requires true labels."
+      },
+      {
+        "text": "Clarify pre-training bias analysis on the production inputs to compute precision and recall",
+        "why": "Pre-training bias metrics describe the dataset's balance, not the model's live accuracy."
+      },
+      {
+        "text": "CloudWatch Logs Insights on the endpoint's access logs to count the number of fraud predictions per day",
+        "why": "Counting predictions doesn't tell you whether they were correct. Ground truth must be joined to measure quality."
+      }
+    ],
+    "takeaway": "Production accuracy needs ground truth: Model Monitor model quality with labels merged by inference ID.",
+    "concept": "Delayed labels are normal. Ground-truth files are uploaded to S3 and merged with captured data when the schedule runs. Alarm on metric violations through CloudWatch and EventBridge to trigger retraining."
+  },
+  {
+    "id": 166,
+    "topic": "MLOps, monitoring & drift",
+    "topic_slug": "mlops-monitoring-and-drift",
+    "level": "exam",
+    "question": "A lender must check before training whether one demographic group is under-represented in the data, and after deployment whether the model's behaviour toward that group drifts. Which feature covers both?",
+    "correct": 0,
+    "options": [
+      {
+        "text": "SageMaker Clarify: pre-training bias metrics on the data and bias drift monitoring via Model Monitor",
+        "why": "Correct. Clarify computes bias metrics (such as class imbalance and difference in proportions of labels) before training and post-training, and integrates with Model Monitor for ongoing bias drift."
+      },
+      {
+        "text": "SageMaker Data Wrangler's quick model, which trains a small model to estimate feature importance only",
+        "why": "Quick Model helps judge feature importance and leakage. It is not a bias auditing and monitoring tool."
+      },
+      {
+        "text": "Amazon Macie, which discovers sensitive data in S3 and flags buckets that hold personally identifiable data",
+        "why": "Macie finds sensitive data. It does not measure statistical bias between groups."
+      },
+      {
+        "text": "Amazon Augmented AI (A2I), which routes low-confidence predictions to human reviewers for a second opinion",
+        "why": "A2I adds human review of individual predictions. It isn't a dataset or model bias metric service."
+      }
+    ],
+    "takeaway": "Bias detection and explainability across the ML lifecycle: SageMaker Clarify (plus Model Monitor for drift).",
+    "concept": "Clarify also provides explainability using SHAP feature attributions. Pre-training metrics include class imbalance (CI) and difference in proportions of labels (DPL); post-training metrics include disparate impact."
+  },
+  {
+    "id": 167,
+    "topic": "MLOps, monitoring & drift",
+    "topic_slug": "mlops-monitoring-and-drift",
+    "level": "exam",
+    "question": "A company needs a governed process in which every trained model version is recorded with its metrics and lineage, a human approves it, and the approval automatically triggers deployment to production. Which design meets this?",
+    "correct": 0,
+    "options": [
+      {
+        "text": "SageMaker Model Registry model package groups with approval status, and an EventBridge rule on status change that starts a deployment pipeline",
+        "why": "Correct. Registered versions carry metadata and metrics. Changing the status to Approved emits an event that EventBridge can route to CodePipeline or SageMaker Pipelines."
+      },
+      {
+        "text": "Storing each model.tar.gz in an S3 bucket with version-numbered prefixes and a shared spreadsheet of results",
+        "why": "Versioning in S3 keeps artifacts but provides no governed approval workflow, lineage or automatic events."
+      },
+      {
+        "text": "Tagging each SageMaker training job in the console and having engineers deploy the tagged job's model by hand",
+        "why": "Tags help with cost and search, but it's manual and not an approval mechanism."
+      },
+      {
+        "text": "Packaging the model in a Lambda layer and promoting the layer version number through the Lambda console",
+        "why": "Lambda layers are not a model governance tool and aren't designed to serve typical SageMaker model artifacts at scale."
+      }
+    ],
+    "takeaway": "Versioning, approval and promotion of models: Model Registry plus EventBridge-driven CI/CD.",
+    "concept": "Typical flow: Pipelines (process, train, evaluate) -> ConditionStep checks the metric -> RegisterModel as PendingManualApproval -> approval -> EventBridge -> deploy. Cross-account promotion uses resource policies on the registry."
+  },
+  {
+    "id": 168,
+    "topic": "MLOps, monitoring & drift",
+    "topic_slug": "mlops-monitoring-and-drift",
+    "level": "exam",
+    "question": "An ML workflow must preprocess data, train, evaluate and register the model only if the evaluation AUC exceeds 0.90. The team wants a repeatable, versioned, SageMaker-native workflow. Which feature should they build with?",
+    "correct": 0,
+    "options": [
+      {
+        "text": "SageMaker Pipelines with processing, training and evaluation steps and a ConditionStep before RegisterModel",
+        "why": "Correct. Pipelines is the purpose-built ML CI/CD service. A ConditionStep reads a metric from the evaluation step's property file and controls whether registration happens."
+      },
+      {
+        "text": "A single long-running notebook cell that executes each stage in order and prints the final metric",
+        "why": "It isn't repeatable or auditable and has no step caching, parameterization or conditional logic."
+      },
+      {
+        "text": "Amazon SQS queues between four Lambda functions that each start one SageMaker job",
+        "why": "This is possible but requires building state handling, retries and metric-based branching yourself."
+      },
+      {
+        "text": "An AWS Glue crawler scheduled nightly that discovers new files and runs training automatically",
+        "why": "Glue crawlers catalog schemas. They don't orchestrate training, evaluation or conditional registration."
+      }
+    ],
+    "takeaway": "Repeatable ML workflow with conditional logic: SageMaker Pipelines (ConditionStep, RegisterModel).",
+    "concept": "Alternatives: AWS Step Functions (general orchestration, Data Science SDK) and Amazon MWAA/Airflow (existing Airflow users). For the exam, 'SageMaker-native ML workflow' usually points to Pipelines."
+  },
+  {
+    "id": 169,
+    "topic": "MLOps, monitoring & drift",
+    "topic_slug": "mlops-monitoring-and-drift",
+    "level": "exam",
+    "question": "New training data lands in an S3 bucket each week. The team wants the training pipeline to start automatically when the weekly file arrives, without managing servers. Which TWO options can start the pipeline execution?",
+    "correct": [
+      0,
+      1
+    ],
+    "options": [
+      {
+        "text": "An Amazon EventBridge rule that matches the S3 object-created event and targets the SageMaker pipeline",
+        "why": "Correct. SageMaker Pipelines can be an EventBridge target, so an S3 event can start an execution directly."
+      },
+      {
+        "text": "An S3 event notification to a Lambda function that calls StartPipelineExecution",
+        "why": "Correct. A small Lambda function can start the execution through the SageMaker API in response to the S3 event."
+      },
+      {
+        "text": "A CloudWatch alarm on the S3 bucket's StorageClass transition metric that fires after 30 days",
+        "why": "Storage class transitions are about lifecycle management and have nothing to do with a new object arriving."
+      },
+      {
+        "text": "AWS Glue Data Quality rule that automatically calls the training algorithm once the schema matches",
+        "why": "Data Quality evaluates rules and publishes results. It doesn't start SageMaker training."
+      },
+      {
+        "text": "A SageMaker Model Monitor schedule that retrains the model whenever the monitoring job finishes",
+        "why": "Model Monitor reports violations. Retraining must be triggered by something else, such as an EventBridge rule on its result."
+      }
+    ],
+    "takeaway": "Event-driven retraining: S3 event to EventBridge or Lambda, then StartPipelineExecution.",
+    "concept": "EventBridge can also use a cron schedule. For drift-driven retraining, a CloudWatch alarm or Model Monitor violation event feeds EventBridge, which starts the pipeline."
+  },
+  {
+    "id": 170,
+    "topic": "MLOps, monitoring & drift",
+    "topic_slug": "mlops-monitoring-and-drift",
+    "level": "exam",
+    "question": "Data scientists run many experiments with different datasets, hyperparameters and code versions and later cannot tell which run produced which model. Which capability tracks parameters, metrics and artifacts per run?",
+    "correct": 0,
+    "options": [
+      {
+        "text": "SageMaker Experiments (or SageMaker managed MLflow) to log runs, parameters, metrics and artifacts",
+        "why": "Correct. Experiments and managed MLflow organise trials/runs, record parameters and metrics, and let you compare and reproduce them."
+      },
+      {
+        "text": "SageMaker Neo compilation jobs, which store the version history of every compiled model artifact",
+        "why": "Neo compiles models for target hardware. It isn't an experiment tracker."
+      },
+      {
+        "text": "Amazon Athena queries over CloudTrail logs to reconstruct which hyperparameters were set",
+        "why": "CloudTrail records API calls, but reconstructing experiments from it is clumsy and loses metrics and artifacts."
+      },
+      {
+        "text": "AWS Config rules that record configuration changes to the SageMaker domain and its notebook instances",
+        "why": "Config tracks resource configuration compliance, not the contents of ML experiments."
+      }
+    ],
+    "takeaway": "Reproducibility and comparison of training runs: SageMaker Experiments or managed MLflow.",
+    "concept": "Related lineage concept: SageMaker ML Lineage Tracking traces model artifacts back to data and code. Model cards document intended use and risks for governance."
+  },
+  {
+    "id": 171,
+    "topic": "MLOps, monitoring & drift",
+    "topic_slug": "mlops-monitoring-and-drift",
+    "level": "exam",
+    "question": "A model needs identical, consistent features during training and real-time inference, with single-digit-millisecond lookups at serving time and historical data for training. Which service is designed for this?",
+    "correct": 0,
+    "options": [
+      {
+        "text": "SageMaker Feature Store with an online store for low-latency lookups and an offline store in S3 for training",
+        "why": "Correct. The same feature definitions serve both: the online store returns the latest values in milliseconds, and the offline store keeps history for point-in-time-correct training sets."
+      },
+      {
+        "text": "Amazon S3 only, storing the features as CSV files that the endpoint reads for every request",
+        "why": "S3 reads are too slow for per-request lookups and there's no feature versioning or consistency between training and serving."
+      },
+      {
+        "text": "AWS Glue Data Catalog tables that describe the feature schemas for Athena to query at inference time",
+        "why": "Catalog tables store metadata. Querying Athena per request would be far too slow."
+      },
+      {
+        "text": "Amazon Redshift Spectrum queries run by the endpoint container to compute features from raw tables",
+        "why": "Computing features per request adds high latency and risks training/serving skew."
+      }
+    ],
+    "takeaway": "Reusable features with online and offline access: SageMaker Feature Store.",
+    "concept": "Online store = latest value per record, low latency. Offline store = append-only history in S3 (Glue catalog), used for training and batch. This avoids training-serving skew."
+  },
+  {
+    "id": 172,
+    "topic": "MLOps, monitoring & drift",
+    "topic_slug": "mlops-monitoring-and-drift",
+    "level": "exam",
+    "question": "An endpoint's latency has increased and some requests fail. The team needs near-real-time operational visibility and notification. Which combination is MOST appropriate?",
+    "correct": 0,
+    "options": [
+      {
+        "text": "CloudWatch metrics (ModelLatency, Invocation5XXErrors, CPUUtilization) with alarms that notify through Amazon SNS",
+        "why": "Correct. SageMaker publishes endpoint invocation and instance metrics to CloudWatch. Alarms can notify via SNS, trigger auto scaling or start a rollback."
+      },
+      {
+        "text": "SageMaker Model Monitor data quality jobs scheduled hourly to compare feature statistics with the baseline",
+        "why": "These detect data changes, not infrastructure errors or latency spikes."
+      },
+      {
+        "text": "AWS Cost Explorer reports that show daily endpoint spend and alert at a monthly budget threshold",
+        "why": "Cost tools track spend. They don't show request errors or latency."
+      },
+      {
+        "text": "SageMaker Clarify explainability reports generated on a sample of recent predictions each week",
+        "why": "Explainability describes why predictions were made, not whether the endpoint is healthy."
+      }
+    ],
+    "takeaway": "Operational health of an endpoint: CloudWatch metrics and alarms (plus logs), not Model Monitor.",
+    "concept": "Remember the split. CloudWatch = infrastructure and invocation health. Model Monitor = data and model quality. CloudTrail = who called which API. X-Ray / logs help trace application latency."
+  },
+  {
+    "id": 173,
+    "topic": "Security & data protection",
+    "topic_slug": "security-and-data-protection",
+    "level": "exam",
+    "question": "A training job processes sensitive data in S3 and must have no path to the public internet. Which TWO configurations satisfy this requirement?",
+    "correct": [
+      0,
+      1
+    ],
+    "options": [
+      {
+        "text": "Run the job in a VPC private subnet and add an S3 gateway VPC endpoint",
+        "why": "Correct. A private subnet has no internet route, and the S3 gateway endpoint gives the job private access to the training data."
+      },
+      {
+        "text": "Enable network isolation on the training job so the container cannot make outbound network calls",
+        "why": "Correct. Network isolation blocks all outbound network access from the container. SageMaker still handles the S3 input and output through its own channel."
+      },
+      {
+        "text": "Place the job in a public subnet with a security group that allows only HTTPS outbound traffic",
+        "why": "A public subnet with an internet gateway still has a route to the internet, and HTTPS is itself an internet protocol."
+      },
+      {
+        "text": "Attach an IAM policy with an explicit deny on every action outside of the s3 and sagemaker prefixes",
+        "why": "IAM controls which API calls are allowed, not the network path. The container could still reach internet hosts."
+      },
+      {
+        "text": "Use a NAT gateway for outbound traffic and rely on the container's firewall to block unwanted sites",
+        "why": "A NAT gateway is specifically what gives private subnets internet access, which is the opposite of the requirement."
+      }
+    ],
+    "takeaway": "No internet for ML jobs: private subnets with VPC endpoints plus network isolation.",
+    "concept": "Use interface endpoints (AWS PrivateLink) for services like SageMaker API, Runtime and ECR, and a gateway endpoint for S3 (and DynamoDB). Endpoint policies and bucket policies with aws:SourceVpce add more control."
+  },
+  {
+    "id": 174,
+    "topic": "Security & data protection",
+    "topic_slug": "security-and-data-protection",
+    "level": "exam",
+    "question": "A data scientist can read an S3 bucket from the CLI, but a SageMaker notebook running under the same person's login fails with an AccessDenied error when reading the same bucket. What is the MOST likely fix?",
+    "correct": 0,
+    "options": [
+      {
+        "text": "Add S3 read permissions to the SageMaker execution role that the notebook and jobs assume",
+        "why": "Correct. Code running in SageMaker uses the execution role, not the person's own credentials, so that role needs the S3 permissions (scoped to the required bucket and prefix)."
+      },
+      {
+        "text": "Grant the data scientist's IAM user the AdministratorAccess managed policy for the whole account",
+        "why": "The user already has access; the failing identity is the execution role. Granting admin also violates least privilege."
+      },
+      {
+        "text": "Make the S3 bucket public and enable website hosting so notebooks can reach it without credentials",
+        "why": "Exposing sensitive data publicly is a severe security failure and not needed for a role-based fix."
+      },
+      {
+        "text": "Disable the bucket's default encryption, because SSE-KMS blocks all access from SageMaker notebooks",
+        "why": "Encryption doesn't block a properly authorized role. If the bucket uses SSE-KMS the role needs kms:Decrypt on the key rather than removing encryption."
+      }
+    ],
+    "takeaway": "SageMaker jobs and notebooks act as their execution role; grant least-privilege permissions to that role.",
+    "concept": "Two identities exist: the user (who creates resources and needs iam:PassRole) and the execution role (what jobs use). With SSE-KMS buckets the role also needs key permissions in the key policy or IAM."
+  },
+  {
+    "id": 175,
+    "topic": "Security & data protection",
+    "topic_slug": "security-and-data-protection",
+    "level": "exam",
+    "question": "Compliance requires training data and model artifacts in S3 to be encrypted with a key the company controls, with an audit trail of each use of the key. What is the BEST solution?",
+    "correct": 0,
+    "options": [
+      {
+        "text": "SSE-KMS with a customer managed KMS key, and AWS CloudTrail logging the key's Encrypt and Decrypt calls",
+        "why": "Correct. Customer managed keys give control over key policy and rotation, and KMS API calls are recorded in CloudTrail for auditing."
+      },
+      {
+        "text": "SSE-S3 default encryption, which uses AES-256 keys that Amazon S3 creates and manages automatically",
+        "why": "SSE-S3 encrypts data but the customer doesn't control the keys and there's no per-use audit trail of the key."
+      },
+      {
+        "text": "Client-side base64 encoding of the files before upload so the bytes are unreadable in S3",
+        "why": "Base64 is an encoding, not encryption. Anyone can reverse it without a key."
+      },
+      {
+        "text": "Bucket versioning with MFA delete enabled, so objects cannot be removed by an unauthorized user",
+        "why": "Versioning and MFA delete protect against deletion. They don't encrypt data or provide key usage logs."
+      }
+    ],
+    "takeaway": "Control and audit of encryption keys: SSE-KMS with customer managed keys plus CloudTrail.",
+    "concept": "SageMaker also accepts KMS keys for training volumes, output artifacts, endpoint storage and notebook volumes. Encryption in transit uses TLS; inter-container traffic encryption can be enabled for distributed training."
+  },
+  {
+    "id": 176,
+    "topic": "Security & data protection",
+    "topic_slug": "security-and-data-protection",
+    "level": "exam",
+    "question": "A company wants to automatically discover which of its many S3 buckets contain personally identifiable information (PII) before using the data for ML. Which service is designed for this?",
+    "correct": 0,
+    "options": [
+      {
+        "text": "Amazon Macie, which uses machine learning and pattern matching to discover sensitive data in S3",
+        "why": "Correct. Macie inventories buckets and scans objects for PII and other sensitive data, then produces findings."
+      },
+      {
+        "text": "Amazon Comprehend, called on one document at a time to detect entities in text that you supply",
+        "why": "Comprehend can detect PII entities in text you pass in, but it isn't an S3 bucket discovery and inventory service. It is the tool for analyzing or redacting text content."
+      },
+      {
+        "text": "AWS Config, which evaluates whether the S3 buckets comply with the company's configuration rules",
+        "why": "Config evaluates resource configuration (for example encryption enabled), not the contents of the objects."
+      },
+      {
+        "text": "Amazon GuardDuty, which analyses logs to detect threats such as compromised credentials and unusual API use",
+        "why": "GuardDuty is threat detection. It does not classify data content."
+      }
+    ],
+    "takeaway": "Find sensitive data across S3 buckets: Macie. Detect or redact PII in text you pass in: Comprehend.",
+    "concept": "Anonymization/masking techniques before training include masking, hashing, tokenization, generalization and removal. Lake Formation and IAM then control who can see which columns."
+  },
+  {
+    "id": 177,
+    "topic": "Security & data protection",
+    "topic_slug": "security-and-data-protection",
+    "level": "exam",
+    "question": "A SageMaker processing job must connect to a relational database. The team currently hardcodes the database password in the Python script that is stored in the source repository. What should they do?",
+    "correct": 0,
+    "options": [
+      {
+        "text": "Store the credentials in AWS Secrets Manager and let the job's execution role retrieve them at run time",
+        "why": "Correct. Secrets Manager stores and rotates secrets, and access is controlled by IAM. The code contains no credentials."
+      },
+      {
+        "text": "Move the password to a plaintext environment variable in the notebook so it is out of the repository",
+        "why": "Plaintext environment variables can leak through logs, job descriptions and console views."
+      },
+      {
+        "text": "Encode the password with base64 in the script so it is not readable at a glance in the repository",
+        "why": "Base64 is trivially reversible and the secret remains in source control."
+      },
+      {
+        "text": "Store the password in a public S3 object and have the script download it when each job starts up",
+        "why": "A public object exposes the credential to everyone. Even a private object lacks rotation and auditing features."
+      }
+    ],
+    "takeaway": "Never hardcode secrets: Secrets Manager (with rotation) or SSM Parameter Store SecureString, read via IAM.",
+    "concept": "Secrets Manager adds automatic rotation for supported databases. Parameter Store is cheaper for simple configuration values. Either way, access flows from the role and is logged in CloudTrail."
+  },
+  {
+    "id": 178,
+    "topic": "Generative AI (exam style)",
+    "topic_slug": "generative-ai-exam-style",
+    "level": "exam",
+    "question": "A company wants a chatbot that answers questions about internal policies. The policies are updated daily and answers must cite the source documents. Which approach is MOST appropriate?",
+    "correct": 0,
+    "options": [
+      {
+        "text": "Retrieval Augmented Generation with a Bedrock Knowledge Base that indexes the policy documents",
+        "why": "Correct. RAG retrieves current passages at query time, so new documents are available after a sync, and the retrieved sources can be returned as citations."
+      },
+      {
+        "text": "Fine-tune a foundation model on the policy documents every night so it memorises the content",
+        "why": "Fine-tuning is slow and costly to repeat daily, bakes knowledge into the weights and can't reliably cite sources."
+      },
+      {
+        "text": "Continued pre-training of the model on the company's full document archive once every quarter",
+        "why": "Quarterly updates leave answers stale for up to three months, and pre-training is expensive. It also doesn't provide citations."
+      },
+      {
+        "text": "Increase the model's temperature so it produces more varied and creative policy answers for users",
+        "why": "Temperature controls randomness. Higher values increase the chance of inaccurate answers and don't add knowledge."
+      }
+    ],
+    "takeaway": "Fresh, citable, private knowledge: RAG with Knowledge Bases beats fine-tuning.",
+    "concept": "Use fine-tuning to change style, format or task behaviour, not to inject frequently changing facts. RAG pipeline: chunk, embed, store vectors, retrieve top-k, then augment the prompt."
+  },
+  {
+    "id": 179,
+    "topic": "Generative AI (exam style)",
+    "topic_slug": "generative-ai-exam-style",
+    "level": "exam",
+    "question": "A RAG application sometimes states facts that are not supported by the retrieved passages, and users sometimes paste personal data into prompts. Which TWO Amazon Bedrock Guardrails features address these problems?",
+    "correct": [
+      0,
+      1
+    ],
+    "options": [
+      {
+        "text": "Contextual grounding checks to detect responses not grounded in the source or relevant to the query",
+        "why": "Correct. Grounding checks score responses for grounding and relevance and block those below your thresholds, reducing hallucinations in RAG."
+      },
+      {
+        "text": "Sensitive information filters to block or mask PII in prompts and responses",
+        "why": "Correct. The filters can detect PII entities and either block the content or mask it."
+      },
+      {
+        "text": "Denied topics configured with a list of competitor product names that the model must never mention",
+        "why": "Denied topics are about subject areas to avoid. This does not detect ungrounded statements or PII."
+      },
+      {
+        "text": "Word filters containing the profanity list from the company's code of conduct document",
+        "why": "Word filters block specific words or phrases. They don't verify factual grounding or find PII."
+      },
+      {
+        "text": "Increasing the maximum tokens parameter so the model has room to include its sources in the answer",
+        "why": "Token limits control length, not factual accuracy or privacy."
+      }
+    ],
+    "takeaway": "Guardrails: contextual grounding (hallucination), sensitive information filters (PII), content filters, denied topics, word filters.",
+    "concept": "Guardrails apply to inputs and outputs, and ApplyGuardrail lets you use them with models outside Bedrock. Automated Reasoning checks validate responses against logical rules for high-stakes domains."
+  },
+  {
+    "id": 180,
+    "topic": "Generative AI (exam style)",
+    "topic_slug": "generative-ai-exam-style",
+    "level": "exam",
+    "question": "A company serves a custom model, produced by fine-tuning a foundation model in Amazon Bedrock, to a steady, high volume of requests. How must it be deployed for inference?",
+    "correct": 0,
+    "options": [
+      {
+        "text": "Purchase Provisioned Throughput for the custom model and invoke it through the provisioned model ARN",
+        "why": "Correct. Custom (fine-tuned or continued pre-trained) models in Bedrock can only be served using Provisioned Throughput, which reserves model units for a commitment term."
+      },
+      {
+        "text": "Use on-demand pay-per-token inference, exactly as for base foundation models, with no additional setup",
+        "why": "On-demand inference is for base models that are offered that way. Custom models require Provisioned Throughput."
+      },
+      {
+        "text": "Run Bedrock Batch Inference only, since custom models cannot answer interactive online requests at all",
+        "why": "Custom models can serve online requests through Provisioned Throughput. Batch inference is an extra option for offline workloads."
+      },
+      {
+        "text": "Export the model weights to Lambda and invoke the function, since Bedrock hosting is not available for custom models",
+        "why": "Lambda is not designed to host large model weights, and Bedrock does host custom models via provisioned capacity."
+      }
+    ],
+    "takeaway": "Custom models in Bedrock need Provisioned Throughput; base models can use on-demand or batch.",
+    "concept": "Provisioned Throughput trades commitment (no commitment, 1 month, 6 months) for guaranteed capacity and lower cost per unit at steady volume. On-demand suits spiky or experimental use; batch inference gives discounts for offline jobs."
   }
 ]
