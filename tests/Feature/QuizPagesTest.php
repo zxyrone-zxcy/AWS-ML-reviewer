@@ -30,10 +30,24 @@ class QuizPagesTest extends TestCase
 
         $this->assertNotEmpty($bank);
 
+        $ids = array_column($bank, 'id');
+        $this->assertSame(count($ids), count(array_unique($ids)), 'Question ids must be unique');
+
         foreach ($bank as $q) {
-            $this->assertCount(4, $q['options'], "Question {$q['id']} must have 4 options");
-            $this->assertGreaterThanOrEqual(0, $q['correct']);
-            $this->assertLessThanOrEqual(3, $q['correct']);
+            $count = count($q['options']);
+            $this->assertGreaterThanOrEqual(4, $count, "Question {$q['id']} needs at least 4 options");
+            $this->assertLessThanOrEqual(6, $count, "Question {$q['id']} has too many options");
+
+            // `correct` is one index, or a list of indexes for choose-two/multi-select questions.
+            $correct = (array) $q['correct'];
+            $this->assertNotEmpty($correct, "Question {$q['id']} needs a correct answer");
+            $this->assertSame(count($correct), count(array_unique($correct)), "Question {$q['id']} repeats a correct index");
+            foreach ($correct as $i) {
+                $this->assertIsInt($i);
+                $this->assertGreaterThanOrEqual(0, $i);
+                $this->assertLessThan($count, $i, "Question {$q['id']} correct index is out of range");
+            }
+
             $this->assertNotEmpty($q['takeaway']);
             foreach ($q['options'] as $opt) {
                 $this->assertNotEmpty($opt['text']);
