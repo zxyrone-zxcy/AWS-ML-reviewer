@@ -497,27 +497,27 @@
     "id": 20,
     "topic": "Amazon S3",
     "topic_slug": "amazon-s3",
-    "question": "According to your S3 101 notes, what is the maximum size of a single S3 object?",
+    "question": "What is the maximum size of a single Amazon S3 object?",
     "correct": 2,
     "options": [
       {
         "text": "5 GB",
-        "why": "5 GB is the cap for a single-stream PutObject upload, not the object size limit."
+        "why": "A single PUT request is capped at 5 GB, but that is not the object size limit. Larger objects use multipart upload."
       },
       {
         "text": "5 TB",
-        "why": "This was the old limit. Note your S3 Performance page still mentions 5 TB, but the S3 101 page lists a larger one."
+        "why": "This was the limit until AWS raised it in December 2025, so older material still quotes it."
       },
       {
         "text": "50 TB",
-        "why": "Correct per your S3 101 notes: 50 TB is a HARD limit (memorize), and objects can range from 0 B up to it."
+        "why": "Correct. AWS increased the maximum object size from 5 TB to 50 TB (December 2025). Objects over 5 GB still need multipart upload."
       },
       {
         "text": "Unlimited",
         "why": "False. There is a hard limit."
       }
     ],
-    "takeaway": "Heads-up: your Performance Optimization page still says S3 stores objects up to 5 TB. The S3 101 page (updated) says 50 TB. Treat 50 TB as current."
+    "takeaway": "The maximum S3 object size is 50 TB (raised from 5 TB in December 2025). A single PUT is capped at 5 GB, so larger objects use multipart upload. Older study material may still say 5 TB."
   },
   {
     "id": 21,
@@ -2207,7 +2207,7 @@
         "why": "Neither is true."
       }
     ],
-    "takeaway": "In the lab, 'I read a good novel' is tokenized into a sequence of integers using a BERT tokenizer."
+    "takeaway": "A tokenizer turns text into a sequence of integer token IDs; the model then maps each ID to an embedding vector that encodes its meaning."
   },
   {
     "id": 86,
@@ -2395,27 +2395,27 @@
     "id": 93,
     "topic": "Generative AI & Bedrock",
     "topic_slug": "generative-ai-and-bedrock",
-    "question": "Which of these Bedrock prerequisites does your note list?",
+    "question": "Which statement about getting started with Amazon Bedrock models is correct?",
     "correct": 3,
     "options": [
       {
-        "text": "Use the root user for best results, since it avoids permission errors",
-        "why": "Root is not recommended. Use an IAM user."
+        "text": "Use the root user for best results, since it avoids permission errors on every model",
+        "why": "Use an IAM user or role with least-privilege permissions, not the root user."
       },
       {
-        "text": "No permissions are needed because Bedrock access is open by default",
-        "why": "The user needs Bedrock permissions."
+        "text": "No permissions are needed because Bedrock access is open to every identity by default",
+        "why": "Access is controlled through IAM (and SCP) policies, so you do need the right permissions."
       },
       {
-        "text": "All foundation models are free to use for the first twelve months after an account is created",
-        "why": "Third-party models are billed at the vendor's rates via AWS."
+        "text": "Request access to each foundation model on the Model access page before invoking it",
+        "why": "This was the old workflow. The Model access page was retired in commercial Regions, and serverless models are now enabled by default."
       },
       {
-        "text": "Use an IAM user (not root) with Bedrock permissions, and request access to an FM first",
-        "why": "Correct. Third-party models may require extra information."
+        "text": "An IAM identity (not root) with Bedrock permissions; Anthropic models also need a one-time form",
+        "why": "Correct. Serverless models are enabled automatically, Anthropic models need a one-time first-time-use form, and some Marketplace-served models need Marketplace subscribe permissions on first use."
       }
     ],
-    "takeaway": "Check pricing at aws.amazon.com/bedrock/pricing."
+    "takeaway": "Bedrock access is now governed mainly by IAM/SCP permissions. Serverless models are enabled by default, Anthropic models need a one-time form, and AWS GovCloud (US) still uses the Model access page. Check the current AWS docs, since this changed in 2025."
   },
   {
     "id": 94,
